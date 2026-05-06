@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Weekly Meal Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:       #FAF8F3;
+  --warm-white:  #FFFEF9;
+  --sage:        #7A9E7E;
+  --sage-light:  #EDF2EE;
+  --sage-dark:   #4A6B4E;
+  --teal:        #4E8C8A;
+  --teal-light:  #E8F3F3;
+  --amber:       #C8833A;
+  --amber-light: #FDF3E7;
+  --coral:       #C96B55;
+  --coral-light: #FAEEE9;
+  --purple:      #7066C8;
+  --purple-light:#EEEDFE;
+  --text-1:      #1C1C1A;
+  --text-2:      #5C5C58;
+  --text-3:      #9C9C96;
+  --border:      #E8E4DC;
+  --border-strong:#D0CCC2;
+  --slot-b:      #C8833A;
+  --slot-1:      #4E8C8A;
+  --slot-2:      #4A6B4E;
+  --slot-s:      #7066C8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-1);min-height:100vh}
+
+/* ── LAYOUT ─────────────────────────── */
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:272px;min-width:272px;
+  background:var(--warm-white);
+  border-right:1px solid var(--border);
+  padding:1.75rem 0;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.main{flex:1;padding:3rem 4rem;max-width:900px}
+
+/* ── SIDEBAR ────────────────────────── */
+.sidebar-head{padding:0 1.25rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
+.sidebar-title{font-family:'Lora',serif;font-size:17px;color:var(--text-1);margin-bottom:4px}
+.sidebar-sub{font-size:12px;color:var(--text-3);line-height:1.5}
+.day-group{margin-bottom:0.5rem}
+.day-label{
+  font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--text-3);padding:.5rem 1.25rem .25rem;display:block
+}
+.meal-link{
+  display:flex;align-items:center;gap:8px;padding:.45rem 1.25rem;
+  font-size:13px;color:var(--text-2);cursor:pointer;
+  border-left:2px solid transparent;transition:all .12s;text-decoration:none;line-height:1.35
+}
+.meal-link:hover{color:var(--text-1);background:var(--cream)}
+.meal-link.active{color:var(--sage-dark);border-left-color:var(--sage);background:var(--sage-light)}
+.slot-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0
+}
+.slot-dot.breakfast{background:var(--slot-b)}
+.slot-dot.meal1{background:var(--slot-1)}
+.slot-dot.meal2{background:var(--slot-2)}
+.slot-dot.snack{background:var(--slot-s)}
+
+/* ── LEGEND ─────────────────────────── */
+.legend-strip{
+  display:flex;flex-wrap:wrap;gap:10px;padding:.75rem 1.25rem;
+  border-top:1px solid var(--border);margin-top:.5rem
+}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3)}
+
+/* ── RECIPE HEADER ──────────────────── */
+.recipe-slot{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
+.recipe-slot.breakfast{color:var(--slot-b)}
+.recipe-slot.meal-1{color:var(--slot-1)}
+.recipe-slot.meal-2{color:var(--slot-2)}
+.recipe-slot.snack{color:var(--slot-s)}
+.recipe-title{font-family:'Lora',serif;font-size:30px;line-height:1.25;color:var(--text-1);margin-bottom:.85rem}
+.recipe-desc{font-size:15px;color:var(--text-2);line-height:1.7;max-width:580px}
+.recipe-meta{display:flex;gap:1.25rem;margin-top:1rem;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-2)}
+.meta-dot{width:5px;height:5px;border-radius:50%;background:var(--sage)}
+.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:.9rem}
+.tag{font-size:11px;font-weight:500;padding:2px 9px;border-radius:99px}
+.tag-teal{background:var(--teal-light);color:var(--teal)}
+.tag-amber{background:var(--amber-light);color:var(--amber)}
+.tag-coral{background:var(--coral-light);color:var(--coral)}
+.tag-sage{background:var(--sage-light);color:var(--sage-dark)}
+.tag-purple{background:var(--purple-light);color:var(--purple)}
+hr.div{border:none;border-top:1px solid var(--border);margin:1.75rem 0}
+
+/* ── INGREDIENTS ────────────────────── */
+.section-title{font-family:'Lora',serif;font-size:20px;color:var(--text-1);margin-bottom:1.1rem}
+.seed-callout{
+  background:var(--sage-light);border-radius:8px;
+  padding:.65rem 1rem;margin-bottom:1rem;
+  font-size:13px;color:var(--sage-dark);line-height:1.5
+}
+.seed-callout strong{font-weight:500}
+.ing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:7px;margin-bottom:1.75rem}
+.ing-row{
+  display:flex;align-items:baseline;gap:7px;
+  padding:9px 12px;background:var(--warm-white);
+  border:1px solid var(--border);border-radius:8px;font-size:13.5px
+}
+.ing-row.seed-highlight{border-color:var(--sage);background:var(--sage-light)}
+.ing-qty{font-weight:500;color:var(--sage-dark);min-width:60px;font-size:12.5px}
+.ing-name{color:var(--text-1)}
+.ing-note{font-size:11.5px;color:var(--text-3);margin-left:auto;font-style:italic;text-align:right}
+
+/* ── STEPS ──────────────────────────── */
+.steps{display:flex;flex-direction:column;gap:1rem}
+.step{
+  display:flex;gap:1.1rem;padding:1.1rem 1.25rem;
+  background:var(--warm-white);border:1px solid var(--border);border-radius:10px
+}
+.step-num{font-family:'Lora',serif;font-size:21px;color:var(--border-strong);min-width:26px;line-height:1;padding-top:2px}
+.step-body{flex:1}
+.step-title{font-weight:500;font-size:14px;color:var(--text-1);margin-bottom:3px}
+.step-text{font-size:13.5px;color:var(--text-2);line-height:1.7}
+.step-tip{
+  margin-top:7px;padding:7px 11px;background:var(--amber-light);
+  border-radius:6px;font-size:12.5px;color:var(--amber);line-height:1.5
+}
+.step-tip::before{content:"💡 Tip: ";font-weight:500}
+.step-warn{
+  margin-top:7px;padding:7px 11px;background:var(--coral-light);
+  border-radius:6px;font-size:12.5px;color:var(--coral);line-height:1.5
+}
+.step-warn::before{content:"⚠️ Watch out: ";font-weight:500}
+
+/* ── NAV BUTTONS ────────────────────── */
+.nav-btns{
+  display:flex;justify-content:space-between;
+  margin-top:2.5rem;padding-top:1.75rem;border-top:1px solid var(--border)
+}
+.nav-btn{
+  padding:9px 18px;border:1px solid var(--border-strong);border-radius:8px;
+  background:var(--warm-white);font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--text-2);cursor:pointer;transition:all .13s;max-width:48%
+}
+.nav-btn:hover{background:var(--sage-light);color:var(--sage-dark);border-color:var(--sage)}
+.nav-btn:disabled{opacity:.35;cursor:default;background:transparent}
+
+/* ── WELCOME ────────────────────────── */
+.welcome{max-width:580px;padding:1.5rem 0}
+.welcome-title{font-family:'Lora',serif;font-size:36px;line-height:1.2;margin-bottom:1.1rem}
+.welcome-body{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:1.5rem}
+.rules{display:flex;flex-direction:column;gap:9px}
+.rule{
+  display:flex;gap:11px;padding:11px 14px;
+  background:var(--warm-white);border:1px solid var(--border);border-radius:8px
+}
+.rule-icon{font-size:17px;min-width:22px}
+.rule-text{font-size:13px;color:var(--text-2);line-height:1.5}
+.rule-text strong{color:var(--text-1);font-weight:500}
+.slot-key{
+  display:flex;flex-wrap:wrap;gap:10px;
+  padding:1rem 1.25rem;background:var(--warm-white);
+  border:1px solid var(--border);border-radius:8px;margin-top:1.25rem
+}
+.slot-key-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2)}
+.slot-circle{width:10px;height:10px;border-radius:50%}
+
+@media(max-width:768px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);padding:1rem 0}
+  .main{padding:1.5rem 1.25rem}
+  .recipe-title{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main class="main" id="main"></main>
+</div>
+
+<script>
+const DATA = {
+
+// ─────────────────────────────────────────────────────────────────
+// MONDAY
+// ─────────────────────────────────────────────────────────────────
+monday: {
+  label: "Monday",
+  breakfast: {
+    id: "mon-b", slot: "breakfast",
+    title: "Golden milk chia pudding with blueberries",
+    desc: "A creamy, no-cook breakfast you prep the night before. Chia seeds swell overnight into a thick pudding packed with omega-3 ALA, fibre, and the mast-cell-stabilising power of turmeric and ginger.",
+    time: "5 min prep (night before)", difficulty: "Very easy", serves: 1,
+    tags:[["Low histamine","sage"],["Omega-3 ALA","teal"],["Mast cell stable","purple"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"3 tbsp",name:"chia seeds"},
+      {qty:"1 cup (240 ml)",name:"oat milk"},
+      {qty:"½ tsp",name:"turmeric"},
+      {qty:"¼ tsp",name:"ground ginger"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries",note:"to serve"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind just before serving"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"to serve"},
+    ],
+    steps:[
+      {title:"Mix the pudding base",text:"In a jar or container with a lid, whisk together oat milk, turmeric, ginger, cinnamon, and honey until combined. Add the chia seeds and stir very well — make sure no seeds are clumped at the bottom. Stir again after 5 minutes, then seal and refrigerate overnight.",tip:"The second stir is important. Chia seeds clump together quickly if left undisturbed, creating gooey pockets instead of even pudding."},
+      {title:"The morning: check and top",text:"Take the pudding out of the fridge. It should be thick and set — the chia seeds will have expanded to 8–10 times their size. If it's too thick, stir in a splash of oat milk. Grind 1 tbsp of whole flaxseeds in a small spice grinder (or coffee grinder) right now — do not use pre-ground flaxseed."},
+      {title:"Assemble and serve",text:"Spoon the pudding into a bowl. Top with fresh blueberries, the freshly milled flaxseed, and pumpkin seeds. Eat immediately once the flaxseed is added.",warn:"Grind flaxseed immediately before eating only. Pre-ground or stored ground flax oxidises rapidly and can trigger MCAS reactions."},
+    ]
+  },
+  meal1: {
+    id: "mon-1", slot: "meal 1",
+    title: "Herb-baked salmon with roasted asparagus and oat porridge",
+    desc: "A nourishing, omega-3-rich start to the day. The salmon is foolproof in the oven — no flipping required. Oat porridge provides beta-glucan for LDL lowering; chia seeds and flaxseed boost the omega-3 and fibre load further.",
+    time: "30 min", difficulty: "Very easy", serves: 1,
+    tags:[["Omega-3","teal"],["Heart healthy","teal"],["Low histamine","sage"],["Energy stable","amber"]],
+    ingredients:[
+      {qty:"150 g",name:"fresh salmon fillet",note:"skin-on is fine"},
+      {qty:"1 tbsp",name:"extra virgin olive oil (EVOO)",note:"for salmon"},
+      {qty:"1 clove",name:"garlic",note:"minced or finely chopped"},
+      {qty:"1 tbsp",name:"fresh dill",note:"roughly chopped"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"6–8 spears",name:"fresh asparagus"},
+      {qty:"1 tsp",name:"EVOO",note:"for asparagus"},
+      {qty:"½ cup (45 g)",name:"rolled oats"},
+      {qty:"1 cup (240 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds",note:"stirred into porridge"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"add after cooking"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries"},
+      {qty:"1 tsp",name:"honey"},
+    ],
+    steps:[
+      {title:"Preheat the oven",text:"Turn your oven to 200°C (400°F). It takes about 10–15 minutes to heat up fully.",tip:"Most ovens have a light that turns off when they've reached temperature."},
+      {title:"Prep the asparagus",text:"Hold each asparagus spear at both ends and bend gently — it snaps naturally at the tough woody part. Discard the bottom. Place spears on one side of a foil-lined baking tray. Drizzle with 1 tsp EVOO and a pinch of salt. Toss to coat."},
+      {title:"Prep the salmon",text:"Pat the salmon dry with kitchen paper. Place skin-side down on the other side of the same tray. Drizzle with 1 tbsp EVOO, scatter over minced garlic, fresh dill, salt, and pepper.",tip:"'Skin-side down' means the darker, scalier side faces the tray."},
+      {title:"Bake",text:"Bake for 12–15 minutes. Salmon is done when it flakes easily when pressed lightly with a fork — it should be opaque, not glassy, in the centre. Asparagus should be lightly golden at the tips.",warn:"Don't leave past 15 minutes or the salmon will dry out."},
+      {title:"Cook the porridge",text:"While salmon bakes, combine oats, oat milk, and chia seeds in a small saucepan over medium heat. Stir occasionally. Once bubbling, reduce to low heat and stir for 3–4 minutes until thick and creamy. Remove from heat."},
+      {title:"Add flaxseed and serve",text:"Grind 1 tbsp whole flaxseeds in a spice grinder right now. Stir into the hot porridge immediately. Top with blueberries and honey. Plate the salmon and asparagus alongside. Eat immediately.",tip:"Adding the freshly milled flaxseed to hot porridge and eating straight away is ideal — heat and immediate consumption minimise any oxidation."},
+    ]
+  },
+  meal2: {
+    id: "mon-2", slot: "meal 2",
+    title: "Lentil and kale soup with quinoa and fresh chicken breast",
+    desc: "A deeply satisfying, fibre-rich dinner. Everything cooks in one pot. Chia seeds stirred into the cooked quinoa add omega-3 and extra fibre without changing the texture noticeably.",
+    time: "45 min", difficulty: "Easy", serves: 1,
+    tags:[["Soluble fibre","teal"],["Low histamine","sage"],["Anti-inflammatory","teal"]],
+    ingredients:[
+      {qty:"1 small (120 g)",name:"fresh chicken breast"},
+      {qty:"1 tsp",name:"EVOO"},
+      {qty:"¼ tsp",name:"dried thyme"},
+      {qty:"1 clove",name:"garlic",note:"minced"},
+      {qty:"¼ tsp",name:"salt + pinch pepper"},
+      {qty:"¼ cup (50 g)",name:"green or brown lentils",note:"rinsed"},
+      {qty:"1 large leaf",name:"fresh kale",note:"stem removed, roughly torn"},
+      {qty:"½ small",name:"leek",note:"sliced into rounds"},
+      {qty:"1 medium",name:"carrot",note:"peeled, diced small"},
+      {qty:"1½ cups (360 ml)",name:"low-sodium vegetable broth"},
+      {qty:"¼ cup (45 g)",name:"quinoa",note:"rinsed"},
+      {qty:"½ cup (120 ml)",name:"water",note:"for quinoa"},
+      {qty:"1 tbsp",name:"chia seeds",note:"stirred into cooked quinoa"},
+    ],
+    steps:[
+      {title:"Season and sear the chicken",text:"Rub chicken with EVOO, thyme, garlic, salt, and pepper. Heat a small frying pan over medium-high heat for 1 minute, then add chicken. Cook 4–5 minutes per side until golden. It doesn't need to be fully cooked through yet.",tip:"The pan is ready when a drop of water flicked onto it sizzles immediately."},
+      {title:"Start the soup",text:"In a medium saucepan, combine rinsed lentils, leek, carrot, and broth. Bring to a boil over high heat, then reduce to medium-low so it simmers gently. Cook for 20 minutes."},
+      {title:"Cook the quinoa",text:"Put rinsed quinoa and water in a small saucepan. Bring to a boil, cover, reduce to lowest heat, cook 12–15 minutes until water is absorbed and little white tails appear on grains. Remove from heat, keep covered 5 minutes. Fluff with a fork, then stir in the chia seeds while still warm."},
+      {title:"Finish the soup",text:"Add kale to the soup. Place the seared chicken breast into the broth. Cook on low heat 8–10 minutes until chicken is fully cooked through — slice the thickest part; it should be white throughout with no pink.",warn:"Pink chicken means it's not safe to eat. Give it a few more minutes."},
+      {title:"Slice and serve",text:"Lift out chicken, slice into thick pieces on a chopping board. Spoon chia-quinoa into a bowl, ladle soup over the top, lay sliced chicken alongside. Eat immediately."},
+    ]
+  },
+  snack: {
+    id: "mon-s", slot: "snack",
+    title: "Apple slices with fresh walnut and pumpkin seed mix",
+    desc: "A perfectly balanced snack combining quercetin from the apple, ALA omega-3 from fresh walnuts, and magnesium from pumpkin seeds. Takes 2 minutes to prepare.",
+    time: "2 min", difficulty: "Very easy", serves: 1,
+    tags:[["Mast cell stable","purple"],["Heart healthy","teal"],["Quercetin","sage"],["Magnesium","amber"]],
+    ingredients:[
+      {qty:"1 medium",name:"apple",note:"cored and sliced"},
+      {qty:"15 g",name:"fresh walnuts",note:"crack whole walnuts just before eating"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"raw, unroasted, unsalted"},
+    ],
+    steps:[
+      {title:"Prepare",text:"Crack or shell fresh whole walnuts just before eating — pre-packaged walnut pieces accumulate histamine. Core and slice the apple. Arrange on a plate with pumpkin seeds alongside.",tip:"Buying whole walnuts in the shell (or vacuum-sealed halves, consumed promptly after opening) is the safest approach for MCAS."},
+      {title:"Eat promptly",text:"Eat straight away. Don't prep this snack in advance as the apple will brown and the walnuts will begin to oxidise."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// TUESDAY
+// ─────────────────────────────────────────────────────────────────
+tuesday: {
+  label: "Tuesday",
+  breakfast: {
+    id: "tue-b", slot: "breakfast",
+    title: "Oat porridge with milled flaxseed, pear, and hemp seeds",
+    desc: "A warming, deeply nourishing bowl with three different seed types hitting omega-3, magnesium, and fibre simultaneously. The pear adds gentle sweetness and additional soluble fibre.",
+    time: "10 min", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Omega-3 ALA","teal"],["Mast cell stable","purple"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats"},
+      {qty:"1 cup (240 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds",note:"stirred in while cooking"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind immediately before serving"},
+      {qty:"1 tbsp",name:"hemp seeds (hemp hearts)"},
+      {qty:"1 small",name:"ripe pear",note:"cored, sliced"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+    ],
+    steps:[
+      {title:"Cook the porridge",text:"Combine oats, oat milk, chia seeds, and cinnamon in a small saucepan over medium heat. Stir occasionally until it begins to bubble, then reduce to low and stir frequently for 3–4 minutes until thick and creamy."},
+      {title:"Add flaxseed",text:"Remove from heat. Grind 1 tbsp whole flaxseeds immediately in a spice grinder. Stir into the hot porridge along with honey.",warn:"Always grind flaxseed fresh — oxidised pre-ground flaxseed is a histamine trigger."},
+      {title:"Serve",text:"Pour into a bowl. Top with pear slices and hemp seeds. Eat immediately."},
+    ]
+  },
+  meal1: {
+    id: "tue-1", slot: "meal 1",
+    title: "Egg and vegetable scramble with sweet potato hash",
+    desc: "A warm, energising meal that is almost impossible to get wrong. Chia seeds are stirred into the beaten eggs before scrambling — they disappear into the mix and add omega-3 and fibre invisibly.",
+    time: "30 min", difficulty: "Very easy", serves: 1,
+    tags:[["B vitamins","teal"],["Low glycemic","amber"],["Heart healthy","teal"],["Omega-3","teal"]],
+    ingredients:[
+      {qty:"1 medium",name:"sweet potato",note:"peeled, diced 1 cm"},
+      {qty:"1½ tbsp",name:"EVOO",note:"split use"},
+      {qty:"¼ tsp",name:"turmeric"},
+      {qty:"¼ tsp",name:"black pepper"},
+      {qty:"¼ tsp",name:"salt"},
+      {qty:"3 large",name:"eggs"},
+      {qty:"1 tsp",name:"chia seeds",note:"beaten into the eggs"},
+      {qty:"½ small",name:"zucchini",note:"diced small"},
+      {qty:"4–5 florets",name:"broccoli",note:"cut small"},
+      {qty:"1 tbsp",name:"fresh parsley or chives",note:"roughly chopped"},
+      {qty:"1 medium",name:"apple",note:"sliced, to serve"},
+    ],
+    steps:[
+      {title:"Preheat oven & prep potato",text:"Preheat oven to 210°C (410°F). Dice sweet potato into ~1 cm cubes. Place on foil-lined baking tray, drizzle with 1 tbsp EVOO, turmeric, half the salt and pepper. Toss to coat."},
+      {title:"Roast the potato",text:"Spread in a single layer. Roast 20–22 minutes, turning once with a spatula halfway. Ready when golden and slightly crispy at the edges.",tip:"Single layer is key — crowded potato steams instead of roasting."},
+      {title:"Beat the eggs with chia",text:"Crack 3 eggs into a bowl. Add chia seeds, a pinch of salt and pepper. Beat with a fork for 30 seconds until combined. The chia seeds will absorb a little egg moisture and swell slightly — this is fine."},
+      {title:"Cook the vegetables",text:"Heat ½ tbsp EVOO in a non-stick frying pan over medium heat. Add zucchini and broccoli. Cook stirring occasionally for 4–5 minutes until just tender."},
+      {title:"Scramble",text:"Pour the egg-chia mixture over the vegetables. Leave 15 seconds, then fold gently from the edges inward every 15–20 seconds. Remove from heat while eggs look slightly underdone — residual heat finishes them.",warn:"Don't stir constantly or use high heat — you'll get dry, rubbery eggs."},
+      {title:"Serve",text:"Scatter parsley or chives over the scramble. Plate with sweet potato hash and apple slices. Eat immediately."},
+    ]
+  },
+  meal2: {
+    id: "tue-2", slot: "meal 2",
+    title: "Turkey and vegetable stir-fry with brown rice",
+    desc: "Quick and fresh. Brown rice takes 30 minutes so start it first. Pumpkin seeds are stirred through the finished rice for a magnesium boost and satisfying crunch.",
+    time: "40 min", difficulty: "Easy", serves: 1,
+    tags:[["Low histamine","sage"],["Anti-inflammatory","teal"],["Energy stable","amber"]],
+    ingredients:[
+      {qty:"⅓ cup (65 g)",name:"brown rice"},
+      {qty:"¾ cup (180 ml)",name:"water",note:"for rice"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"stirred into cooked rice"},
+      {qty:"120 g",name:"fresh ground turkey"},
+      {qty:"1 tbsp",name:"EVOO"},
+      {qty:"1 clove",name:"garlic",note:"finely chopped"},
+      {qty:"1 tsp",name:"fresh ginger",note:"grated or finely chopped"},
+      {qty:"1 large handful",name:"bok choy",note:"roughly chopped"},
+      {qty:"1 small",name:"carrot",note:"peeled, thin rounds or matchsticks"},
+      {qty:"1 handful",name:"snap peas or green beans",note:"trimmed"},
+      {qty:"1 tbsp",name:"coconut aminos",note:"replaces soy sauce"},
+      {qty:"½",name:"fresh lime",note:"juice only"},
+      {qty:"1 tsp",name:"EVOO",note:"finishing drizzle"},
+    ],
+    steps:[
+      {title:"Start the brown rice",text:"Rinse rice in a sieve. Combine with water and a pinch of salt. Bring to a boil, cover tightly, reduce to lowest heat setting. Cook 30 minutes. Do not lift the lid.",warn:"Start the rice first — it takes 30 minutes and everything else waits for it."},
+      {title:"Prep vegetables",text:"While rice cooks, prepare all vegetables. Peel and slice carrot. Roughly chop bok choy. Trim snap peas. Finely chop garlic. Grate ginger.",tip:"Having everything prepped before you heat the pan prevents panic when things cook fast."},
+      {title:"Cook the turkey",text:"Heat 1 tbsp EVOO in a large frying pan or wok over medium-high heat. Add ground turkey, breaking it up with a spoon. Cook 4–5 minutes until no pink remains. Push to the side."},
+      {title:"Add aromatics and vegetables",text:"Add garlic and ginger to the empty side of the pan. Stir 30 seconds. Add carrot and stir everything together for 2 minutes. Then add snap peas and bok choy. Stir-fry (keep everything moving) for another 2–3 minutes until bright and just tender-crisp.",tip:"High heat + constant movement = proper stir-fry."},
+      {title:"Season and serve",text:"Pour coconut aminos over everything and toss to coat. Off heat, squeeze lime over the pan and drizzle with 1 tsp EVOO. Fluff the cooked rice with a fork and stir through the pumpkin seeds. Plate with the stir-fry on top."},
+    ]
+  },
+  snack: {
+    id: "tue-s", slot: "snack",
+    title: "Blueberry and chia seed 'fresca' with oat crackers",
+    desc: "A refreshing light snack. The blueberry-chia mixture can sit for 10 minutes to thicken slightly into a loose jam-like texture. Pair with plain oat crackers for soluble fibre.",
+    time: "3 min", difficulty: "Very easy", serves: 1,
+    tags:[["Quercetin","purple"],["Omega-3 ALA","teal"],["Mast cell stable","sage"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"¼ cup (35 g)",name:"fresh blueberries"},
+      {qty:"1 tsp",name:"chia seeds"},
+      {qty:"2–3",name:"plain oat crackers",note:"check ingredients — oats, salt, oil only"},
+      {qty:"1 tsp",name:"honey",note:"optional"},
+    ],
+    steps:[
+      {title:"Make the blueberry chia mix",text:"Lightly crush the blueberries in a small bowl with the back of a fork. Stir in chia seeds and honey if using. Leave 5–10 minutes — the chia will absorb the juices and thicken the mixture."},
+      {title:"Serve",text:"Spoon the blueberry chia mixture onto oat crackers or eat alongside them. Eat immediately."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// WEDNESDAY
+// ─────────────────────────────────────────────────────────────────
+wednesday: {
+  label: "Wednesday",
+  breakfast: {
+    id: "wed-b", slot: "breakfast",
+    title: "Overnight oats with milled flaxseed, blueberries, and walnuts",
+    desc: "Prep the night before for a zero-effort morning. This version layers chia seeds into the overnight soak and milled flaxseed on top at serving — maximum omega-3, beta-glucan, and quercetin in one bowl.",
+    time: "5 min prep (night before) + 2 min morning", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Omega-3 ALA","teal"],["Heart healthy","teal"],["Mast cell stable","sage"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats",note:"not instant oats"},
+      {qty:"¾ cup (180 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds",note:"soaked overnight with oats"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind at serving time only"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries"},
+      {qty:"15 g",name:"fresh walnuts",note:"crack whole walnuts just before eating"},
+    ],
+    steps:[
+      {title:"Night before",text:"Combine oats, oat milk, chia seeds, cinnamon, and honey in a jar or lidded container. Stir very well. Refrigerate overnight."},
+      {title:"Morning: check consistency",text:"Remove from fridge — it should be thick and creamy. Stir in a splash of oat milk if too thick."},
+      {title:"Add flaxseed",text:"Grind 1 tbsp whole flaxseeds in a spice grinder right now. Stir into the soaked oats.",warn:"Always grind flaxseed fresh. Pre-ground is a histamine trigger."},
+      {title:"Top and serve",text:"Top with fresh blueberries and freshly cracked walnuts. Eat immediately."},
+    ]
+  },
+  meal1: {
+    id: "wed-1", slot: "meal 1",
+    title: "Overnight oats with blueberries and walnuts (light version)",
+    desc: "If you've had the fuller breakfast version, this is a lighter take with the same base but fewer toppings — or simply a repeat of breakfast if you're having this as your first main meal.",
+    time: "5 min prep (night before)", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Quercetin","purple"],["Omega-3","teal"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats",note:"not instant oats"},
+      {qty:"¾ cup (180 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind at serving time"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries"},
+      {qty:"15 g",name:"fresh walnuts",note:"crack whole, just before eating"},
+      {qty:"2 large",name:"eggs",note:"boiled alongside for protein"},
+    ],
+    steps:[
+      {title:"The night before",text:"Combine oats, oat milk, chia seeds, cinnamon, and honey in a jar or lidded container. Stir well. Refrigerate overnight."},
+      {title:"Morning: flaxseed and toppings",text:"Grind 1 tbsp whole flaxseeds in a spice grinder. Stir into oats. Add splash of oat milk if too thick. Top with blueberries and freshly cracked walnuts.",tip:"Chia seeds swell overnight and thicken the mixture — this is normal and desirable."},
+      {title:"Boil the eggs",text:"Bring a small saucepan of water to a boil. Lower in eggs with a spoon. Boil exactly 7 minutes for a fully set but not rubbery yolk. Run under cold water 1 minute, peel. Serve alongside."},
+    ]
+  },
+  meal2: {
+    id: "wed-2", slot: "meal 2",
+    title: "Baked white fish with roasted beet and chickpea salad",
+    desc: "Elegant and easy. The beets take the longest so go in first. Pumpkin seeds scattered over the chickpea salad add magnesium and crunch.",
+    time: "55 min (mostly hands-off)", difficulty: "Easy", serves: 1,
+    tags:[["Low histamine","sage"],["Soluble fibre","teal"],["Heart healthy","teal"],["Magnesium","amber"]],
+    ingredients:[
+      {qty:"2 small or 1 large",name:"golden or red beets",note:"fresh, not pickled"},
+      {qty:"150 g",name:"fresh cod, haddock, or halibut fillet"},
+      {qty:"1 tbsp",name:"EVOO",note:"for fish"},
+      {qty:"1 clove",name:"garlic",note:"minced"},
+      {qty:"1 tbsp",name:"fresh parsley",note:"chopped"},
+      {qty:"zest of ½",name:"lemon",note:"use fine grater; no juice"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"½ cup (80 g)",name:"canned chickpeas",note:"drained and rinsed well"},
+      {qty:"1 tbsp",name:"EVOO",note:"for salad dressing"},
+      {qty:"1 tbsp",name:"fresh parsley",note:"extra, for salad"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"scattered over salad"},
+      {qty:"pinch",name:"salt"},
+    ],
+    steps:[
+      {title:"Roast the beets",text:"Preheat oven to 200°C (400°F). Scrub beets. Wrap each individually in foil. Place on a baking tray and roast 40–50 minutes until a knife slides in with no resistance.",tip:"Beets stain — consider wearing an apron or old clothes when peeling."},
+      {title:"Peel and dice the beets",text:"When cool enough to handle, unwrap foil. Skin rubs off easily with fingers or kitchen paper. Dice into bite-sized cubes.",warn:"Beets will colour your hands and board red/yellow. Harmless and washes off."},
+      {title:"Bake the fish",text:"Place fish on foil-lined baking tray. Mix EVOO, garlic, parsley, lemon zest, salt, and pepper in a small bowl. Spoon over fish. Bake at 200°C for 10–14 minutes until it flakes easily when pressed with a fork.",tip:"Lemon zest (the outer yellow skin) gives flavour without the histamine-triggering juice. Use a microplane or fine grater."},
+      {title:"Make the chickpea salad",text:"Combine drained chickpeas and diced beets in a bowl. Add 1 tbsp EVOO, parsley, and a pinch of salt. Toss gently. Scatter pumpkin seeds over the top."},
+      {title:"Plate and serve",text:"Spoon beet and chickpea salad onto a plate. Place baked fish alongside. Eat immediately."},
+    ]
+  },
+  snack: {
+    id: "wed-s", slot: "snack",
+    title: "Pear with pumpkin seed and chia sprinkle",
+    desc: "One of the simplest snacks on the plan. Pear is rich in soluble fibre and well tolerated by MCAS patients. The seed mix adds omega-3, magnesium, and protein to balance blood sugar.",
+    time: "2 min", difficulty: "Very easy", serves: 1,
+    tags:[["Soluble fibre","teal"],["Magnesium","amber"],["Mast cell stable","sage"],["Low histamine","sage"]],
+    ingredients:[
+      {qty:"1 medium",name:"ripe pear",note:"sliced"},
+      {qty:"1 tbsp",name:"pumpkin seeds"},
+      {qty:"1 tsp",name:"chia seeds"},
+      {qty:"pinch",name:"cinnamon",note:"optional"},
+    ],
+    steps:[
+      {title:"Prepare and serve",text:"Slice the pear. Arrange on a plate. Mix pumpkin seeds, chia seeds, and cinnamon together and scatter over the pear slices or serve in a small bowl alongside for dipping. Eat immediately."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// THURSDAY
+// ─────────────────────────────────────────────────────────────────
+thursday: {
+  label: "Thursday",
+  breakfast: {
+    id: "thu-b", slot: "breakfast",
+    title: "Chia and flaxseed power porridge with apple and cinnamon",
+    desc: "A triple-seed morning bowl — rolled oats with both chia and freshly milled flaxseed, topped with apple for quercetin and soluble pectin. An ideal LDL-lowering breakfast.",
+    time: "10 min", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Omega-3 ALA","teal"],["Heart healthy","teal"],["Mast cell stable","sage"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats"},
+      {qty:"1 cup (240 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind just before adding"},
+      {qty:"½ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"1 small",name:"apple",note:"grated or thinly sliced"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"to serve"},
+    ],
+    steps:[
+      {title:"Cook the porridge",text:"Combine oats, oat milk, chia seeds, and cinnamon in a saucepan over medium heat. Stir occasionally. Once bubbling, reduce to low and stir 3–4 minutes until thick and creamy."},
+      {title:"Add flaxseed and apple",text:"Remove from heat. Grind 1 tbsp whole flaxseeds and stir into hot porridge with honey. Grate the apple directly into the bowl or top with thin slices.",tip:"Grating the apple into the porridge infuses the whole bowl with its pectin, adding extra LDL-lowering soluble fibre."},
+      {title:"Serve",text:"Top with pumpkin seeds. Eat immediately."},
+    ]
+  },
+  meal1: {
+    id: "thu-1", slot: "meal 1",
+    title: "Poached egg grain bowl with sautéed greens",
+    desc: "Poaching eggs sounds intimidating but is easier than it looks. The trick is a gentle whirlpool. Pumpkin seeds scattered over the top add magnesium — critical for mast cell stability.",
+    time: "25 min", difficulty: "Easy (once you try poaching)", serves: 1,
+    tags:[["Magnesium","amber"],["B12","teal"],["Stable energy","amber"]],
+    ingredients:[
+      {qty:"⅓ cup (60 g)",name:"quinoa",note:"rinsed"},
+      {qty:"⅔ cup (160 ml)",name:"water",note:"for quinoa"},
+      {qty:"2 large",name:"eggs",note:"very fresh"},
+      {qty:"1 tsp",name:"white wine or apple cider vinegar",note:"for poaching water only"},
+      {qty:"2 large leaves",name:"kale",note:"stems removed, torn"},
+      {qty:"2 cloves",name:"garlic",note:"thinly sliced"},
+      {qty:"1 tbsp",name:"EVOO"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"scattered over finished bowl"},
+      {qty:"½ small",name:"avocado",note:"optional — trial first for MCAS tolerance"},
+      {qty:"salt + pepper",name:"to taste"},
+    ],
+    steps:[
+      {title:"Cook the quinoa",text:"Rinse quinoa. Combine with water and a pinch of salt. Bring to a boil, cover, reduce to lowest heat. Cook 12–15 minutes until water absorbed. Remove from heat, leave covered 5 minutes. Fluff with fork."},
+      {title:"Sauté the greens",text:"Heat EVOO in a small frying pan over medium heat. Add sliced garlic and cook 30 seconds until fragrant. Add torn kale and a pinch of salt. Stir and cook 3–4 minutes until wilted and tender. Remove from heat."},
+      {title:"Set up for poaching",text:"Fill a medium saucepan with about 8 cm of water. Add the vinegar. Bring to a gentle simmer — small bubbles rising, not a rolling boil. Crack one egg into a small cup or ramekin.",tip:"Using a small cup gives you control when lowering the egg into the water."},
+      {title:"Poach the eggs",text:"Stir the water in a circle to create a gentle swirl. Slide the egg from the cup into the centre. Cook 3 minutes for runny yolk, 4 minutes for soft-set. Lift out with a slotted spoon. Repeat with the second egg.",warn:"A rolling boil will break the egg apart. Keep it at a gentle simmer — just small steady bubbles."},
+      {title:"Assemble",text:"Spoon quinoa into a bowl. Arrange kale alongside. Gently place poached eggs on top. Add avocado if using. Scatter pumpkin seeds over everything and drizzle with EVOO. Season with salt and pepper."},
+    ]
+  },
+  meal2: {
+    id: "thu-2", slot: "meal 2",
+    title: "Ground lamb kofta with roasted root vegetables and lentil dal",
+    desc: "The most involved recipe of the week, but three components cook simultaneously so total time is ~40 minutes. Chia seeds stirred into the millet at the end add omega-3 and make the grain stickier and more satisfying.",
+    time: "40 min", difficulty: "Moderate", serves: 1,
+    tags:[["Updated","coral"],["Anti-inflammatory","teal"],["Soluble fibre","teal"],["Low histamine","sage"]],
+    ingredients:[
+      {qty:"120 g",name:"fresh ground lamb",note:"lean, ideally <15% fat"},
+      {qty:"1 tsp",name:"ground cumin"},
+      {qty:"½ tsp",name:"ground coriander"},
+      {qty:"1 tbsp",name:"fresh parsley",note:"finely chopped"},
+      {qty:"1 clove",name:"garlic",note:"minced — for kofta"},
+      {qty:"¼ tsp",name:"salt"},
+      {qty:"1 tbsp",name:"EVOO",note:"for frying kofta"},
+      {qty:"1 medium",name:"carrot",note:"peeled, 2 cm pieces"},
+      {qty:"½ small",name:"parsnip",note:"peeled, 2 cm pieces"},
+      {qty:"½ small",name:"sweet potato",note:"peeled, diced 2 cm"},
+      {qty:"1 tbsp",name:"EVOO",note:"for roasting veg"},
+      {qty:"¼ cup (50 g)",name:"red lentils",note:"rinsed"},
+      {qty:"¾ cup (180 ml)",name:"coconut milk",note:"shake can before opening"},
+      {qty:"¼ cup (60 ml)",name:"water"},
+      {qty:"½ tsp",name:"turmeric"},
+      {qty:"½ tsp",name:"ground ginger"},
+      {qty:"1 clove",name:"garlic",note:"minced — for dal"},
+      {qty:"¼ cup (40 g)",name:"millet or quinoa"},
+      {qty:"½ cup (120 ml)",name:"water",note:"for grain"},
+      {qty:"1 tsp",name:"chia seeds",note:"stirred into cooked millet"},
+    ],
+    steps:[
+      {title:"Preheat oven & roast vegetables",text:"Preheat oven to 200°C (400°F). Toss carrot, parsnip, and sweet potato with 1 tbsp EVOO and a pinch of salt. Spread in a single layer on a foil-lined baking tray. Roast 25–30 minutes, turning once halfway, until golden and tender."},
+      {title:"Cook the grain",text:"Rinse millet or quinoa. Combine with water and a pinch of salt. Bring to a boil, cover, reduce to lowest heat. Cook 12–15 minutes. Remove from heat, keep covered. Stir in chia seeds when done."},
+      {title:"Make the lentil dal",text:"In a small saucepan over medium heat, combine rinsed red lentils, coconut milk, water, turmeric, ginger, and minced garlic. Bring to a gentle simmer, reduce to low. Cook 15–18 minutes, stirring every few minutes, until lentils are completely soft and creamy.",tip:"Red lentils dissolve and thicken as they cook — this is correct, not a mistake."},
+      {title:"Form the kofta",text:"Mix ground lamb with cumin, coriander, parsley, garlic, and salt in a bowl. Mix with your hands. Divide into 3–4 portions and roll each into a short oval sausage shape, pressing firmly.",tip:"Wetting your hands slightly prevents the mixture sticking."},
+      {title:"Cook the kofta",text:"Heat 1 tbsp EVOO in a frying pan over medium-high heat. Place kofta in the pan. Cook 3–4 minutes per side, turning with tongs, until browned all over and cooked through — press the thickest one: juices should run clear, not pink.",warn:"Lamb should be fully cooked through (no pink inside) for food safety."},
+      {title:"Plate and serve",text:"Spoon chia-millet into a bowl. Add the lentil dal alongside. Arrange roasted vegetables and kofta on the plate. Eat immediately."},
+    ]
+  },
+  snack: {
+    id: "thu-s", slot: "snack",
+    title: "Milled flaxseed and blueberry smoothie-style cup",
+    desc: "A quick drinkable snack blending oat milk, freshly milled flaxseed, and blueberries — all three are top-tier for cardiovascular and mast cell health. No blender needed if you don't have one; just stir and eat.",
+    time: "3 min", difficulty: "Very easy", serves: 1,
+    tags:[["Omega-3 ALA","teal"],["Quercetin","purple"],["Heart healthy","teal"],["Mast cell stable","sage"]],
+    ingredients:[
+      {qty:"1 cup (240 ml)",name:"oat milk",note:"chilled"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind immediately before use"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries"},
+      {qty:"1 tsp",name:"honey",note:"optional"},
+    ],
+    steps:[
+      {title:"Grind flaxseed",text:"Grind 1 tbsp whole flaxseeds in a spice grinder right now. Set aside.",warn:"Grind fresh only — pre-ground or stored ground flaxseed accumulates oxidation products that can trigger MCAS."},
+      {title:"Blend or stir",text:"If you have a blender or small personal blender: blend oat milk, blueberries, flaxseed, and honey together for 20 seconds. If no blender: lightly crush blueberries in a cup with a fork, add oat milk, flaxseed, and honey. Stir well. Drink with a wide straw or eat with a spoon."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// FRIDAY
+// ─────────────────────────────────────────────────────────────────
+friday: {
+  label: "Friday",
+  breakfast: {
+    id: "fri-b", slot: "breakfast",
+    title: "Chia overnight oats with mango and pumpkin seeds",
+    desc: "A tropical-feeling breakfast that still ticks every cardiovascular and MCAS box. Mango is well tolerated by most MCAS patients and provides beta-carotene and natural sweetness. Prep the night before.",
+    time: "5 min prep (night before)", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Omega-3 ALA","teal"],["Low histamine","sage"],["Mast cell stable","purple"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats"},
+      {qty:"¾ cup (180 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"¼ cup (40 g)",name:"fresh mango",note:"diced — ripe but not overripe"},
+      {qty:"1 tbsp",name:"pumpkin seeds"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind at serving time"},
+    ],
+    steps:[
+      {title:"Night before",text:"Combine oats, oat milk, chia seeds, cinnamon, and honey in a jar or lidded container. Stir well. Refrigerate overnight."},
+      {title:"Morning",text:"Remove from fridge. Adjust consistency with a splash of oat milk if needed. Grind 1 tbsp whole flaxseeds and stir into oats."},
+      {title:"Top and serve",text:"Top with diced fresh mango and pumpkin seeds. Eat immediately."},
+    ]
+  },
+  meal1: {
+    id: "fri-1", slot: "meal 1",
+    title: "Oat bran porridge with pear and hemp seeds",
+    desc: "Oat bran is even higher in cholesterol-lowering beta-glucan than regular oats. It cooks faster. A gentle, energising start paired with freshly milled flaxseed for maximum omega-3 impact.",
+    time: "15 min", difficulty: "Very easy", serves: 1,
+    tags:[["Beta-glucan","teal"],["Omega-3 ALA","amber"],["Heart healthy","teal"],["Mast cell stable","sage"]],
+    ingredients:[
+      {qty:"⅓ cup (35 g)",name:"oat bran"},
+      {qty:"1 cup (240 ml)",name:"oat milk"},
+      {qty:"1 tbsp",name:"chia seeds",note:"cooked in with the oat bran"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"1 small",name:"ripe pear",note:"cored, thinly sliced"},
+      {qty:"1 tbsp",name:"hemp seeds (hemp hearts)"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind just before serving"},
+      {qty:"2 large",name:"eggs",note:"boiled alongside"},
+    ],
+    steps:[
+      {title:"Cook the oat bran",text:"Combine oat bran, oat milk, and chia seeds in a small saucepan over medium heat. Stir continuously — oat bran thickens quickly and can stick. Cook 2–3 minutes until thick and creamy. Remove from heat. Stir in cinnamon and honey."},
+      {title:"Add flaxseed",text:"Grind 1 tbsp whole flaxseeds immediately. Stir into the hot oat bran.",warn:"Always grind flaxseed fresh."},
+      {title:"Boil the eggs",text:"Bring a small saucepan of water to a boil. Lower in eggs with a spoon. Boil 7 minutes for fully set yolk. Run under cold water, peel."},
+      {title:"Serve",text:"Spoon oat bran into a bowl. Arrange pear slices on top. Scatter hemp seeds. Serve boiled eggs on the side."},
+    ]
+  },
+  meal2: {
+    id: "fri-2", slot: "meal 2",
+    title: "Fresh mackerel with steamed broccoli and brown rice",
+    desc: "Fresh mackerel is one of the richest sources of omega-3 available. Pumpkin seeds are stirred through the sautéed leek rice for a magnesium-rich, satisfying grain base.",
+    time: "40 min", difficulty: "Easy", serves: 1,
+    tags:[["Omega-3","teal"],["Heart healthy","teal"],["Low histamine","sage"],["Magnesium","amber"]],
+    ingredients:[
+      {qty:"1 whole small mackerel or 1 fillet (150 g)",name:"fresh mackerel",note:"NOT smoked"},
+      {qty:"1 tbsp",name:"EVOO"},
+      {qty:"2 cloves",name:"garlic",note:"minced"},
+      {qty:"2 tbsp",name:"fresh parsley",note:"chopped"},
+      {qty:"zest of ½",name:"lemon",note:"grated, no juice"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"⅓ cup (65 g)",name:"brown rice"},
+      {qty:"¾ cup (180 ml)",name:"water",note:"for rice"},
+      {qty:"½ small",name:"leek",note:"sliced into rounds"},
+      {qty:"1 tsp",name:"EVOO",note:"for leek"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"stirred through the leek rice"},
+      {qty:"1 generous cup",name:"broccoli florets",note:"fresh"},
+    ],
+    steps:[
+      {title:"Start the brown rice",text:"Rinse rice. Combine with water and a pinch of salt. Bring to a boil, cover, reduce to lowest heat. Cook 30 minutes. Do not lift the lid.",warn:"Start rice first — everything else waits for it."},
+      {title:"Prep and bake the mackerel",text:"Pat mackerel dry. If using a fillet, place skin-side down on a foil-lined tray. Mix EVOO, garlic, parsley, lemon zest, salt, and pepper. Rub all over fish. Preheat oven to 200°C and bake 12–15 minutes for a fillet, 18–20 minutes for a whole fish. Fish is done when flesh turns opaque and flakes easily."},
+      {title:"Sauté the leek",text:"About 10 minutes before serving, heat 1 tsp EVOO in a small pan over medium heat. Add leek slices and a pinch of salt. Cook 5–6 minutes until soft and slightly golden. Stir in pumpkin seeds."},
+      {title:"Steam the broccoli",text:"Place broccoli florets in a sieve or steamer basket over 3 cm of boiling water. Cover and steam 4–5 minutes until bright green and just tender.",tip:"If no steamer, boil broccoli in 2 cm of water in a covered pan for 3–4 minutes."},
+      {title:"Serve",text:"Fluff rice and mix in the leek-pumpkin seed mixture. Plate with steamed broccoli and mackerel. Eat immediately."},
+    ]
+  },
+  snack: {
+    id: "fri-s", slot: "snack",
+    title: "Melon cubes with chia seed and fresh mint",
+    desc: "Refreshing and hydrating — especially good on a Friday afternoon. Melon is one of the best tolerated fruits for MCAS. Chia seeds add omega-3 and help the snack satisfy more than fruit alone.",
+    time: "3 min", difficulty: "Very easy", serves: 1,
+    tags:[["Low histamine","sage"],["Mast cell stable","purple"],["Hydrating","teal"]],
+    ingredients:[
+      {qty:"1 cup",name:"fresh melon",note:"honeydew or cantaloupe — cubed"},
+      {qty:"1 tsp",name:"chia seeds"},
+      {qty:"3–4 leaves",name:"fresh mint",note:"torn or finely sliced"},
+    ],
+    steps:[
+      {title:"Assemble",text:"Cube the melon and place in a bowl. Scatter chia seeds and fresh mint over the top. Toss lightly to coat. Eat immediately."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// SATURDAY
+// ─────────────────────────────────────────────────────────────────
+saturday: {
+  label: "Saturday",
+  breakfast: {
+    id: "sat-b", slot: "breakfast",
+    title: "Flaxseed and blueberry 'power pancakes'",
+    desc: "Satisfying weekend pancakes made with oats, egg, and freshly milled flaxseed — no wheat flour, no refined sugar. They're smaller and denser than traditional pancakes but deeply nourishing and low-histamine.",
+    time: "20 min", difficulty: "Easy", serves: 1,
+    tags:[["Omega-3 ALA","teal"],["Beta-glucan","teal"],["Low histamine","sage"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"¼ cup (25 g)",name:"rolled oats",note:"blended or ground into rough flour"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind just before use"},
+      {qty:"1 tbsp",name:"chia seeds"},
+      {qty:"2 large",name:"eggs"},
+      {qty:"3 tbsp",name:"oat milk"},
+      {qty:"¼ tsp",name:"cinnamon"},
+      {qty:"1 tsp",name:"honey"},
+      {qty:"1 tsp",name:"EVOO",note:"for cooking"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries",note:"to serve"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"to serve"},
+    ],
+    steps:[
+      {title:"Make the batter",text:"If you have a blender or small food processor, blend the oats into a rough flour (30 seconds). Alternatively, leave oats whole for a textured pancake. Grind 1 tbsp whole flaxseeds. In a bowl combine oat flour, flaxseed, chia seeds, cinnamon, and honey. Beat in eggs and oat milk until a thick batter forms.",tip:"These pancakes are denser than traditional ones — the batter should be quite thick, more like drop scones."},
+      {title:"Cook the pancakes",text:"Heat 1 tsp EVOO in a non-stick frying pan over medium-low heat. Drop 2–3 tablespoons of batter per pancake into the pan. Cook 3–4 minutes until the edges look set and the top has small bubbles. Flip gently and cook 2–3 minutes more. Makes 3–4 small pancakes.",warn:"Lower heat than you think — these cook slowly. High heat burns the outside before the inside sets."},
+      {title:"Serve",text:"Plate the pancakes and top with fresh blueberries and pumpkin seeds. A drizzle of honey if desired. Eat immediately."},
+    ]
+  },
+  meal1: {
+    id: "sat-1", slot: "meal 1",
+    title: "Savory egg muffins with sweet potato and turkey",
+    desc: "Baked in a muffin tin and come out like little portable egg cups. Chia seeds beaten into the egg mixture add omega-3 completely invisibly. Prep and bake all in the same morning.",
+    time: "35 min", difficulty: "Very easy", serves: 1,
+    tags:[["Low histamine","sage"],["Energy stable","amber"],["Omega-3","teal"]],
+    ingredients:[
+      {qty:"3 large",name:"eggs"},
+      {qty:"1 tsp",name:"chia seeds",note:"beaten into the eggs"},
+      {qty:"80 g",name:"fresh ground turkey"},
+      {qty:"½ small",name:"sweet potato",note:"peeled, diced very small (5 mm cubes)"},
+      {qty:"4 small florets",name:"broccoli",note:"very finely chopped"},
+      {qty:"1 tsp",name:"fresh thyme leaves",note:"or ¼ tsp dried"},
+      {qty:"1 tsp",name:"EVOO"},
+      {qty:"¼ tsp",name:"salt + pinch black pepper"},
+      {qty:"1 slice",name:"fresh melon",note:"to serve alongside"},
+      {qty:"¼ cup (35 g)",name:"fresh blueberries",note:"to serve alongside"},
+    ],
+    steps:[
+      {title:"Preheat oven",text:"Preheat oven to 190°C (375°F). Grease 3 holes of a standard muffin tin with a small amount of EVOO."},
+      {title:"Cook the turkey",text:"Heat a small pan with a tiny drizzle of EVOO over medium-high heat. Add ground turkey, break up with a spoon. Cook 3–4 minutes until no pink remains. Set aside."},
+      {title:"Part-cook the sweet potato",text:"Put diced sweet potato in a microwave-safe bowl with 1 tbsp water. Microwave on high for 2 minutes until just softened. This prevents them being undercooked in the muffins.",tip:"Small dice is important — big chunks won't cook through in the muffin."},
+      {title:"Beat eggs with chia",text:"Crack 3 eggs into a bowl, add chia seeds, salt, and pepper. Beat well with a fork. The chia seeds will begin absorbing some egg moisture — this is fine and adds structure."},
+      {title:"Fill and bake",text:"Mix cooked turkey, sweet potato, broccoli, and thyme into the egg-chia mixture. Stir to combine. Pour evenly into 3 greased muffin holes — each should be about ¾ full. Bake 18–20 minutes until tops are set and lightly golden.",tip:"Insert a toothpick into the centre — comes out clean when fully cooked."},
+      {title:"Serve",text:"Cool 2 minutes in the tin, run a knife around edges and lift out with a spoon. Serve immediately alongside fresh melon and blueberries."},
+    ]
+  },
+  meal2: {
+    id: "sat-2", slot: "meal 2",
+    title: "Ground lamb patties with roasted vegetables and white bean mash",
+    desc: "A healthier, more flavourful dinner. The white bean mash has pumpkin seeds and fresh milled flaxseed stirred through it at serving, turning a simple side into a cardiovascular powerhouse.",
+    time: "40 min", difficulty: "Easy", serves: 1,
+    tags:[["Updated","coral"],["Soluble fibre","teal"],["Heart healthy","teal"],["Magnesium","amber"]],
+    ingredients:[
+      {qty:"120 g",name:"fresh lean ground lamb",note:"<15% fat"},
+      {qty:"1 clove",name:"garlic",note:"minced — for patties"},
+      {qty:"1 tsp",name:"fresh rosemary",note:"very finely chopped; or ½ tsp dried"},
+      {qty:"½ tsp",name:"dried oregano"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"1 tsp",name:"EVOO",note:"for cooking patties"},
+      {qty:"½ small",name:"zucchini",note:"sliced into rounds"},
+      {qty:"5–6 spears",name:"asparagus",note:"woody ends snapped off"},
+      {qty:"1 medium",name:"carrot",note:"peeled, sliced diagonally"},
+      {qty:"1 tbsp",name:"EVOO",note:"for roasting vegetables"},
+      {qty:"½ cup (120 g)",name:"canned cannellini beans",note:"drained and rinsed well"},
+      {qty:"1 tbsp",name:"EVOO",note:"for the mash"},
+      {qty:"1 clove",name:"garlic",note:"minced — for mash"},
+      {qty:"2–3 tbsp",name:"warm water or vegetable broth"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"stirred into the mash"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind and stir into mash at serving"},
+      {qty:"pinch",name:"salt"},
+    ],
+    steps:[
+      {title:"Roast the vegetables",text:"Preheat oven to 200°C (400°F). Toss zucchini, asparagus, and carrot with 1 tbsp EVOO and a pinch of salt on a foil-lined tray. Spread in a single layer. Roast 20–22 minutes, turning once, until golden at the edges."},
+      {title:"Form the lamb patties",text:"Combine ground lamb, minced garlic, rosemary, oregano, salt, and pepper in a bowl. Mix well with your hands. Divide into 2 equal portions and shape into flat round patties about 1.5 cm thick. Press the centre slightly flatter than the edges.",tip:"Chilling formed patties in the fridge for 10 minutes helps them hold shape."},
+      {title:"Make the white bean mash",text:"Heat 1 tbsp EVOO in a small saucepan over medium-low heat. Add minced garlic and cook 30 seconds. Add drained cannellini beans and warm water or broth. Mash with a fork until rough and creamy. Season with salt. Remove from heat. Stir in pumpkin seeds.",tip:"For extra smooth mash, use a hand blender. For chunky texture, leave some beans whole."},
+      {title:"Add flaxseed to mash",text:"Grind 1 tbsp whole flaxseeds immediately. Stir into the warm bean mash just before serving.",warn:"Grind fresh. The mash is warm rather than hot by this point, which is fine — just eat promptly."},
+      {title:"Cook the lamb patties",text:"Heat 1 tsp EVOO in a frying pan over medium-high heat. Place patties in pan. Cook 4–5 minutes first side without moving. Flip once. Cook 3–4 more minutes. Juices should run clear.",warn:"Don't press down on patties with a spatula — this squeezes out the juices and dries them out."},
+      {title:"Plate and serve",text:"Spoon the white bean mash onto a plate. Arrange roasted vegetables alongside. Place lamb patties on top. Eat immediately while hot."},
+    ]
+  },
+  snack: {
+    id: "sat-s", slot: "snack",
+    title: "Seed mix energy bites (no-bake)",
+    desc: "A small batch of no-bake energy bites you can prep in 10 minutes on Saturday and have across the weekend. They store in the fridge for up to 2 days — unusually acceptable for MCAS because the ingredients are low-histamine and the binding is oats, not protein.",
+    time: "10 min + 30 min chill", difficulty: "Very easy", serves: 2,
+    tags:[["Omega-3 ALA","teal"],["Beta-glucan","teal"],["Magnesium","amber"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"½ cup (45 g)",name:"rolled oats"},
+      {qty:"1 tbsp",name:"chia seeds"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"roughly chopped"},
+      {qty:"1 tbsp",name:"hemp seeds"},
+      {qty:"2 tsp",name:"honey"},
+      {qty:"1 tbsp",name:"almond butter or sunflower seed butter",note:"check: single ingredient, no additives"},
+      {qty:"¼ tsp",name:"cinnamon"},
+    ],
+    steps:[
+      {title:"Mix",text:"Combine all ingredients in a bowl and mix well with a spoon. The mixture should be sticky enough to press together — if too dry, add a little more honey (½ tsp at a time). If too wet, add a few more oats."},
+      {title:"Form into bites",text:"Scoop about 1 tablespoon of mixture at a time and roll between your palms into a small ball. Place on a small plate or tray lined with baking paper. Makes 6–8 small bites.",tip:"If the mixture sticks to your hands, chill it in the fridge for 15 minutes first, then form."},
+      {title:"Chill and serve",text:"Refrigerate for at least 30 minutes to firm up. Eat 2–3 bites per serving. Store any remainder in an airtight container in the fridge — consume within 2 days."},
+    ]
+  }
+},
+
+// ─────────────────────────────────────────────────────────────────
+// SUNDAY
+// ─────────────────────────────────────────────────────────────────
+sunday: {
+  label: "Sunday",
+  breakfast: {
+    id: "sun-b", slot: "breakfast",
+    title: "Baked egg cups with kale and sweet potato",
+    desc: "A beautiful weekend breakfast baked in ramekins or small oven dishes. You simply layer sweet potato and kale, crack in an egg, and bake. Pumpkin seeds and flaxseed are scattered over after baking.",
+    time: "30 min", difficulty: "Easy", serves: 1,
+    tags:[["Low histamine","sage"],["B12","teal"],["Stable energy","amber"],["Magnesium","amber"]],
+    ingredients:[
+      {qty:"2 large",name:"eggs"},
+      {qty:"½ small",name:"sweet potato",note:"peeled, diced very small, par-cooked"},
+      {qty:"2 large leaves",name:"kale",note:"stems removed, torn small"},
+      {qty:"1 clove",name:"garlic",note:"minced"},
+      {qty:"1 tsp",name:"EVOO"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"1 tbsp",name:"pumpkin seeds",note:"scattered over at serving"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind and sprinkle over at serving"},
+    ],
+    steps:[
+      {title:"Preheat oven and prep",text:"Preheat oven to 190°C (375°F). Dice sweet potato very small (5 mm). Microwave with 1 tbsp water for 2 minutes until just softened. Grease 1–2 ramekins or a small oven dish lightly with EVOO."},
+      {title:"Sauté the filling",text:"Heat EVOO in a small frying pan over medium heat. Add garlic, stir 30 seconds. Add kale and sweet potato. Cook 3–4 minutes until kale is wilted and potato is tender. Season with salt and pepper."},
+      {title:"Assemble and bake",text:"Divide the kale-sweet potato mixture between the ramekins. Make a small well in the centre of each and crack an egg into it. Bake 12–15 minutes — the white should be fully set but the yolk can be runny or set to your preference.",tip:"Check at 12 minutes. Every extra minute makes the yolk firmer."},
+      {title:"Add seeds and serve",text:"Remove from oven. Grind 1 tbsp whole flaxseeds and sprinkle over immediately along with pumpkin seeds. Eat straight from the ramekin — carefully, as it will be very hot.",warn:"The ramekin retains heat well. Rest 1 minute before eating to avoid burning your mouth."},
+    ]
+  },
+  meal1: {
+    id: "sun-1", slot: "meal 1",
+    title: "Fresh salmon scramble with greens",
+    desc: "A luxurious but quick weekend brunch. Cooking fresh salmon and eggs together in the same pan means one less thing to wash. Freshly milled flaxseed is stirred through at the end for omega-3 on top of omega-3.",
+    time: "20 min", difficulty: "Very easy", serves: 1,
+    tags:[["Omega-3","teal"],["B12","teal"],["CoQ10","amber"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"100 g",name:"fresh salmon fillet",note:"skin removed, cut into 2–3 cm chunks"},
+      {qty:"3 large",name:"eggs"},
+      {qty:"1 tsp",name:"chia seeds",note:"beaten into the eggs"},
+      {qty:"2 large leaves",name:"kale",note:"stems removed, torn small"},
+      {qty:"1 clove",name:"garlic",note:"thinly sliced"},
+      {qty:"1 tbsp",name:"fresh chives",note:"snipped or finely chopped"},
+      {qty:"1 tbsp",name:"EVOO"},
+      {qty:"1 tbsp",name:"fresh milled flaxseed",note:"grind and stir through at the end"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"1 slice",name:"oat bread or rye bread",note:"toasted"},
+      {qty:"1 medium",name:"apple",note:"sliced"},
+    ],
+    steps:[
+      {title:"Cook the salmon",text:"Heat EVOO in a non-stick frying pan over medium-high heat. Add salmon chunks. Cook 2 minutes, turning once with a spoon, until just opaque on all sides. Remove temporarily and set aside."},
+      {title:"Sauté garlic and kale",text:"In the same pan over medium heat, add sliced garlic. Stir 30 seconds. Add torn kale and a pinch of salt. Cook 2–3 minutes until wilted."},
+      {title:"Scramble with chia",text:"Beat 3 eggs with chia seeds, salt, and pepper. Pour into the pan over the kale. Add the salmon chunks back in. Leave 15 seconds, then gently fold from the edges inward with a spatula every 15–20 seconds.",tip:"Work gently so salmon stays in satisfying flakes rather than crumbling."},
+      {title:"Add flaxseed and serve",text:"Remove from heat while eggs are slightly underdone. Grind 1 tbsp whole flaxseeds immediately and stir through the scramble. Scatter chives over the top. Serve immediately with oat toast and apple slices.",warn:"Grind flaxseed fresh — even a few hours of pre-grinding leads to oxidation."},
+    ]
+  },
+  meal2: {
+    id: "sun-2", slot: "meal 2",
+    title: "Chicken breast and cannellini bean stew with millet",
+    desc: "A warming, end-of-week stew that is deeply nourishing. Everything happens in one pot. Chia seeds stirred into the millet at the end add omega-3 and a pleasant slightly sticky texture.",
+    time: "50 min", difficulty: "Easy", serves: 1,
+    tags:[["Soluble fibre","teal"],["Anti-inflammatory","teal"],["Low histamine","sage"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"1 small (120 g)",name:"fresh chicken breast",note:"cut into 3–4 large chunks"},
+      {qty:"½ cup (120 g)",name:"canned cannellini beans",note:"drained and rinsed well"},
+      {qty:"2 large leaves",name:"kale",note:"stems removed, roughly chopped"},
+      {qty:"1 medium",name:"carrot",note:"peeled, sliced into rounds"},
+      {qty:"½ small",name:"leek",note:"sliced into rounds"},
+      {qty:"1½ cups (360 ml)",name:"low-sodium vegetable or chicken broth"},
+      {qty:"2 cloves",name:"garlic",note:"roughly chopped"},
+      {qty:"1 tsp",name:"fresh thyme leaves",note:"or ½ tsp dried"},
+      {qty:"1 tsp",name:"fresh rosemary",note:"finely chopped; or ½ tsp dried"},
+      {qty:"1 tbsp",name:"EVOO"},
+      {qty:"¼ tsp",name:"salt + black pepper"},
+      {qty:"¼ cup (45 g)",name:"millet"},
+      {qty:"½ cup (120 ml)",name:"water",note:"for millet"},
+      {qty:"1 tsp",name:"chia seeds",note:"stirred into cooked millet"},
+    ],
+    steps:[
+      {title:"Brown the chicken",text:"Heat EVOO in a medium saucepan over medium-high heat. Season chicken chunks with salt and pepper. Brown for 2 minutes per side — just colouring the outside, not cooking through. Remove and set aside.",tip:"Browning adds flavour. Don't skip it — takes only 4 minutes."},
+      {title:"Build the stew base",text:"In the same pan, add garlic and leek. Cook over medium heat 2 minutes, stirring, until soft. Add carrot and stir 1 more minute."},
+      {title:"Simmer everything",text:"Return chicken to pan. Add broth, cannellini beans, thyme, and rosemary. Bring to a boil, then reduce to a gentle simmer (small bubbles). Cook 25–30 minutes uncovered, stirring occasionally, until chicken is fully cooked through.",warn:"Cut the thickest piece of chicken — it must be white throughout with no pink."},
+      {title:"Cook the millet with chia",text:"About 20 minutes into stew cooking, put millet and water in a small saucepan with a pinch of salt. Bring to a boil, cover, reduce to lowest heat. Cook 12–15 minutes. Remove from heat, keep covered 5 minutes. Fluff with fork and stir in chia seeds."},
+      {title:"Add kale and serve",text:"Add chopped kale to the stew in the last 5 minutes. Stir in — it wilts quickly. Taste and adjust salt. Spoon chia-millet into a deep bowl. Ladle stew generously over the top. Eat immediately."},
+    ]
+  },
+  snack: {
+    id: "sun-s", slot: "snack",
+    title: "Mango and chia seed cup with hemp seeds",
+    desc: "A tropical, refreshing end to the week. Fresh mango with chia and hemp seeds is one of the most MCAS-friendly, nutrient-dense snacks you can have — sweet, satisfying, and ready in two minutes.",
+    time: "2 min", difficulty: "Very easy", serves: 1,
+    tags:[["Low histamine","sage"],["Mast cell stable","purple"],["Omega-3 ALA","teal"],["Heart healthy","teal"]],
+    ingredients:[
+      {qty:"½ cup (80 g)",name:"fresh mango",note:"diced"},
+      {qty:"1 tsp",name:"chia seeds"},
+      {qty:"1 tbsp",name:"hemp seeds (hemp hearts)"},
+      {qty:"pinch",name:"cinnamon",note:"optional"},
+    ],
+    steps:[
+      {title:"Assemble and serve",text:"Place diced fresh mango in a small bowl. Sprinkle chia seeds, hemp seeds, and cinnamon over the top. Stir lightly. Eat immediately.",tip:"Hemp seeds have a mild, slightly nutty flavour that pairs very well with mango. They are extremely well tolerated by MCAS patients."},
+    ]
+  }
+}
+
+}; // end DATA
+
+</script>
+<script>
+// ── Inline data (generated from planning) ─────────────────────────────────────
+const DATA_DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+const SLOT_ORDER = ["breakfast","meal1","meal2","snack"];
+const SLOT_META = {
+  breakfast: {label:"Breakfast",cls:"breakfast",dotCls:"breakfast"},
+  meal1:     {label:"Meal 1",cls:"meal-1",dotCls:"meal1"},
+  meal2:     {label:"Meal 2",cls:"meal-2",dotCls:"meal2"},
+  snack:     {label:"Snack",cls:"snack",dotCls:"snack"},
+};
+
+const SEED_NAMES = ["chia","flaxseed","pumpkin seed","hemp seed"];
+
+function isSeedIngredient(name){
+  const n = name.toLowerCase();
+  return SEED_NAMES.some(s => n.includes(s));
+}
+
+function buildNav(){
+  let html = `
+    <div class="sidebar-head">
+      <div class="sidebar-title">Weekly meal plan</div>
+      <div class="sidebar-sub">3 meals + snack · 7 days · beginner-friendly</div>
+    </div>`;
+
+  DATA_DAYS.forEach(dayKey => {
+    const day = DATA[dayKey];
+    html += `<div class="day-group"><span class="day-label">${day.label}</span>`;
+    SLOT_ORDER.forEach(slot => {
+      const rec = day[slot];
+      if(!rec) return;
+      const m = SLOT_META[slot];
+      html += `<a class="meal-link" data-id="${rec.id}" onclick="show('${rec.id}')">
+        <span class="slot-dot ${m.dotCls}"></span>
+        <span>${rec.title}</span>
+      </a>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `
+    <div class="legend-strip">
+      <span class="legend-item"><span class="slot-dot breakfast" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Breakfast</span>
+      <span class="legend-item"><span class="slot-dot meal1" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Meal 1</span>
+      <span class="legend-item"><span class="slot-dot meal2" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Meal 2</span>
+      <span class="legend-item"><span class="slot-dot snack" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Snack</span>
+    </div>`;
+
+  document.getElementById('sidebar').innerHTML = html;
+}
+
+function getRecipeById(id){
+  for(const dayKey of DATA_DAYS){
+    const day = DATA[dayKey];
+    for(const slot of SLOT_ORDER){
+      const rec = day[slot];
+      if(rec && rec.id === id) return rec;
+    }
+  }
+  return null;
+}
+
+function getAllRecipes(){
+  const list = [];
+  DATA_DAYS.forEach(dayKey => {
+    SLOT_ORDER.forEach(slot => {
+      const rec = DATA[dayKey][slot];
+      if(rec) list.push(rec);
+    });
+  });
+  return list;
+}
+
+function show(id){
+  const rec = getRecipeById(id);
+  if(!rec) return;
+
+  document.querySelectorAll('.meal-link').forEach(el =>
+    el.classList.toggle('active', el.dataset.id === id));
+
+  const slotMeta = SLOT_META[rec.slot.replace(' ','').replace('meal','meal')] ||
+    Object.values(SLOT_META).find(m => m.label.toLowerCase() === rec.slot.toLowerCase()) ||
+    SLOT_META.meal1;
+
+  const slotKey = Object.keys(SLOT_META).find(k => SLOT_META[k].label === rec.slot) ||
+    (rec.slot === 'breakfast' ? 'breakfast' :
+     rec.slot === 'meal 1' ? 'meal1' :
+     rec.slot === 'meal 2' ? 'meal2' : 'snack');
+  const sm = SLOT_META[slotKey] || SLOT_META.meal1;
+
+  const hasSeedIng = rec.ingredients && rec.ingredients.some(i => isSeedIngredient(i.name));
+
+  const tagHtml = (rec.tags||[]).map(([t,c])=>`<span class="tag tag-${c}">${t}</span>`).join('');
+
+  const seedCallout = hasSeedIng ? `
+    <div class="seed-callout">
+      <strong>Seeds in this recipe:</strong> Highlighted ingredients below contain chia seeds, freshly milled flaxseed, or pumpkin seeds — superfoods added for cardiovascular and MCAS benefit. Always grind flaxseed fresh immediately before use.
+    </div>` : '';
+
+  const ingHtml = (rec.ingredients||[]).map(i => {
+    const hl = isSeedIngredient(i.name) ? ' seed-highlight' : '';
+    return `<div class="ing-row${hl}">
+      <span class="ing-qty">${i.qty}</span>
+      <span class="ing-name">${i.name}</span>
+      ${i.note ? `<span class="ing-note">${i.note}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  const stepHtml = (rec.steps||[]).map((s,i)=>{
+    let extra = '';
+    if(s.tip) extra += `<div class="step-tip">${s.tip}</div>`;
+    if(s.warn) extra += `<div class="step-warn">${s.warn}</div>`;
+    return `<div class="step">
+      <div class="step-num">${i+1}</div>
+      <div class="step-body">
+        <div class="step-title">${s.title}</div>
+        <div class="step-text">${s.text}</div>
+        ${extra}
+      </div>
+    </div>`;
+  }).join('');
+
+  const all = getAllRecipes();
+  const idx = all.findIndex(r => r.id === id);
+  const prev = all[idx-1];
+  const next = all[idx+1];
+
+  const serves = rec.serves === 1 ? '1 serving' :
+    rec.serves ? `${rec.serves} servings` : '1 serving';
+
+  document.getElementById('main').innerHTML = `
+    <div>
+      <div class="recipe-slot ${sm.cls}">${sm.label}</div>
+      <h1 class="recipe-title">${rec.title}</h1>
+      <p class="recipe-desc">${rec.desc}</p>
+      <div class="recipe-meta">
+        <span class="meta-item"><span class="meta-dot"></span>${rec.time||''}</span>
+        <span class="meta-item"><span class="meta-dot"></span>${rec.difficulty||''}</span>
+        <span class="meta-item"><span class="meta-dot"></span>${serves}</span>
+      </div>
+      <div class="tags">${tagHtml}</div>
+    </div>
+    <hr class="div">
+    <h2 class="section-title">Ingredients</h2>
+    ${seedCallout}
+    <div class="ing-grid">${ingHtml}</div>
+    <h2 class="section-title">Method</h2>
+    <div class="steps">${stepHtml}</div>
+    <div class="nav-btns">
+      <button class="nav-btn" onclick="show('${prev?.id}')" ${!prev?'disabled':''}>
+        ← ${prev ? prev.title.slice(0,36)+(prev.title.length>36?'…':'') : 'Start'}
+      </button>
+      <button class="nav-btn" onclick="show('${next?.id}')" ${!next?'disabled':''}>
+        ${next ? next.title.slice(0,36)+(next.title.length>36?'…':'') : 'End'} →
+      </button>
+    </div>`;
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showWelcome(){
+  document.getElementById('main').innerHTML = `
+    <div class="welcome">
+      <h1 class="welcome-title">Your personalised<br><em>weekly recipe book</em></h1>
+      <p class="welcome-body">
+        All recipes are single-serving (unless noted), designed to be cooked and eaten fresh.
+        Each day now has a breakfast option, two main meals, and a snack —
+        pick whichever combination suits your energy on the day.
+      </p>
+      <div class="slot-key">
+        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-b)"></span> <strong>Breakfast</strong> — optional lighter start</span>
+        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-1)"></span> <strong>Meal 1</strong> — your primary late-morning meal</span>
+        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-2)"></span> <strong>Meal 2</strong> — your primary evening meal</span>
+        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-s)"></span> <strong>Snack</strong> — low-histamine, heart-healthy</span>
+      </div>
+      <div class="rules" style="margin-top:1.25rem">
+        <div class="rule"><div class="rule-icon">🧊</div><div class="rule-text"><strong>Always cook fresh.</strong> Histamine builds as food ages. Cook and eat each meal the same day. If prepping ahead, freeze same-day portions immediately.</div></div>
+        <div class="rule"><div class="rule-icon">🌱</div><div class="rule-text"><strong>Seed rule:</strong> Seed-containing ingredients are highlighted in green. <strong>Always grind flaxseed immediately before use</strong> — never pre-ground or stored ground. Chia and pumpkin seeds can be pre-measured.</div></div>
+        <div class="rule"><div class="rule-icon">💡</div><div class="rule-text"><strong>Amber tip boxes</strong> are helpful shortcuts. <strong>Red warning boxes</strong> matter for food safety or recipe success. Read before cooking.</div></div>
+        <div class="rule"><div class="rule-icon">⏱</div><div class="rule-text"><strong>Read each recipe before starting.</strong> Many recipes have multiple things going simultaneously — the method tells you when to start each component.</div></div>
+        <div class="rule"><div class="rule-icon">🫒</div><div class="rule-text"><strong>EVOO</strong> is extra virgin olive oil — your primary cooking fat throughout. Use generously.</div></div>
+      </div>
+    </div>`;
+}
+
+buildNav();
+showWelcome();
+</script>
+</body>
+</html>
