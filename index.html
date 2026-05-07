@@ -2,189 +2,497 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Your Weekly Meal Plan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FAF8F3">
+<title>Meal Plan</title>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --cream:       #FAF8F3;
-  --warm-white:  #FFFEF9;
-  --sage:        #7A9E7E;
-  --sage-light:  #EDF2EE;
-  --sage-dark:   #4A6B4E;
-  --teal:        #4E8C8A;
-  --teal-light:  #E8F3F3;
-  --amber:       #C8833A;
-  --amber-light: #FDF3E7;
-  --coral:       #C96B55;
-  --coral-light: #FAEEE9;
-  --purple:      #7066C8;
+:root{
+  --cream:#FAF8F3;
+  --white:#FFFEF9;
+  --sage:#7A9E7E;
+  --sage-light:#EDF2EE;
+  --sage-dark:#4A6B4E;
+  --teal:#4E8C8A;
+  --teal-light:#E8F3F3;
+  --amber:#C8833A;
+  --amber-light:#FDF3E7;
+  --coral:#C96B55;
+  --coral-light:#FAEEE9;
+  --purple:#7066C8;
   --purple-light:#EEEDFE;
-  --text-1:      #1C1C1A;
-  --text-2:      #5C5C58;
-  --text-3:      #9C9C96;
-  --border:      #E8E4DC;
-  --border-strong:#D0CCC2;
-  --slot-b:      #C8833A;
-  --slot-1:      #4E8C8A;
-  --slot-2:      #4A6B4E;
-  --slot-s:      #7066C8;
+  --t1:#1C1C1A;
+  --t2:#5C5C58;
+  --t3:#9C9C96;
+  --border:#E8E4DC;
+  --bstrong:#D0CCC2;
+  --slot-b:#C8833A;
+  --slot-1:#4E8C8A;
+  --slot-2:#4A6B4E;
+  --slot-s:#7066C8;
+  --nav-h:64px;
+  --header-h:52px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text-1);min-height:100vh}
-
-/* ── LAYOUT ─────────────────────────── */
-.app{display:flex;min-height:100vh}
-.sidebar{
-  width:272px;min-width:272px;
-  background:var(--warm-white);
-  border-right:1px solid var(--border);
-  padding:1.75rem 0;
-  position:sticky;top:0;height:100vh;overflow-y:auto;
+ 
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--cream)}
+body{font-family:'DM Sans',sans-serif;color:var(--t1);overscroll-behavior:none}
+ 
+/* ── SCREENS ─────────────────────────── */
+/* Three screens: #screen-days (day/slot picker), #screen-list (meal list for day), #screen-recipe (full recipe) */
+.screen{
+  position:fixed;inset:0;
+  background:var(--cream);
+  display:flex;flex-direction:column;
+  transition:transform .28s cubic-bezier(.4,0,.2,1);
+  will-change:transform;
 }
-.main{flex:1;padding:3rem 4rem;max-width:900px}
-
-/* ── SIDEBAR ────────────────────────── */
-.sidebar-head{padding:0 1.25rem 1.5rem;border-bottom:1px solid var(--border);margin-bottom:1rem}
-.sidebar-title{font-family:'Lora',serif;font-size:17px;color:var(--text-1);margin-bottom:4px}
-.sidebar-sub{font-size:12px;color:var(--text-3);line-height:1.5}
-.day-group{margin-bottom:0.5rem}
-.day-label{
-  font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--text-3);padding:.5rem 1.25rem .25rem;display:block
+.screen.hidden-right{transform:translateX(100%)}
+.screen.hidden-left{transform:translateX(-100%)}
+.screen.visible{transform:translateX(0)}
+ 
+/* ── TOP BAR ─────────────────────────── */
+.topbar{
+  height:var(--header-h);
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;
+  padding:0 16px;gap:12px;
+  flex-shrink:0;
+  position:relative;
 }
-.meal-link{
-  display:flex;align-items:center;gap:8px;padding:.45rem 1.25rem;
-  font-size:13px;color:var(--text-2);cursor:pointer;
-  border-left:2px solid transparent;transition:all .12s;text-decoration:none;line-height:1.35
+.topbar-back{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:50%;
+  background:var(--sage-light);border:none;cursor:pointer;
+  color:var(--sage-dark);font-size:18px;flex-shrink:0;
 }
-.meal-link:hover{color:var(--text-1);background:var(--cream)}
-.meal-link.active{color:var(--sage-dark);border-left-color:var(--sage);background:var(--sage-light)}
-.slot-dot{
-  width:7px;height:7px;border-radius:50%;flex-shrink:0
+.topbar-title{
+  font-family:'Lora',serif;font-size:17px;
+  color:var(--t1);flex:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.slot-dot.breakfast{background:var(--slot-b)}
-.slot-dot.meal1{background:var(--slot-1)}
-.slot-dot.meal2{background:var(--slot-2)}
-.slot-dot.snack{background:var(--slot-s)}
-
-/* ── LEGEND ─────────────────────────── */
-.legend-strip{
-  display:flex;flex-wrap:wrap;gap:10px;padding:.75rem 1.25rem;
-  border-top:1px solid var(--border);margin-top:.5rem
+.topbar-sub{font-size:12px;color:var(--t3);flex-shrink:0}
+ 
+/* ── SCROLLABLE BODY ─────────────────── */
+.scroll-body{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--nav-h) + 16px);
 }
-.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3)}
-
-/* ── RECIPE HEADER ──────────────────── */
-.recipe-slot{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
-.recipe-slot.breakfast{color:var(--slot-b)}
-.recipe-slot.meal-1{color:var(--slot-1)}
-.recipe-slot.meal-2{color:var(--slot-2)}
-.recipe-slot.snack{color:var(--slot-s)}
-.recipe-title{font-family:'Lora',serif;font-size:30px;line-height:1.25;color:var(--text-1);margin-bottom:.85rem}
-.recipe-desc{font-size:15px;color:var(--text-2);line-height:1.7;max-width:580px}
-.recipe-meta{display:flex;gap:1.25rem;margin-top:1rem;flex-wrap:wrap}
-.meta-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-2)}
-.meta-dot{width:5px;height:5px;border-radius:50%;background:var(--sage)}
-.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:.9rem}
-.tag{font-size:11px;font-weight:500;padding:2px 9px;border-radius:99px}
+.scroll-body.no-nav{padding-bottom:24px}
+ 
+/* ── BOTTOM NAV ──────────────────────── */
+.bottom-nav{
+  height:var(--nav-h);
+  background:var(--white);
+  border-top:1px solid var(--border);
+  display:flex;align-items:stretch;
+  position:fixed;bottom:0;left:0;right:0;
+  z-index:100;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:transparent;cursor:pointer;
+  color:var(--t3);transition:color .15s;padding:0;
+}
+.nav-tab.active{color:var(--sage-dark)}
+.nav-tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nav-tab span{font-size:10px;font-weight:500;letter-spacing:.02em}
+.nav-pill{
+  position:absolute;top:8px;
+  width:24px;height:3px;border-radius:2px;
+  background:var(--sage);
+  transition:left .25s cubic-bezier(.4,0,.2,1);
+}
+ 
+/* ── HOME SCREEN ─────────────────────── */
+.home-hero{
+  padding:24px 20px 8px;
+}
+.home-greeting{font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--sage);margin-bottom:6px}
+.home-title{font-family:'Lora',serif;font-size:28px;line-height:1.2;color:var(--t1);margin-bottom:4px}
+.home-sub{font-size:14px;color:var(--t2);line-height:1.5}
+ 
+.day-cards{padding:16px 16px 0;display:flex;flex-direction:column;gap:10px}
+.day-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;cursor:pointer;
+  transition:transform .12s,box-shadow .12s;
+  active-scale:.97;
+}
+.day-card:active{transform:scale(.98)}
+.day-card-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 12px;
+}
+.day-card-label{font-family:'Lora',serif;font-size:18px;color:var(--t1)}
+.day-card-count{font-size:12px;color:var(--t3)}
+.day-slots{display:flex;gap:6px;padding:0 16px 14px;flex-wrap:wrap}
+.slot-chip{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:99px;
+  font-size:12px;font-weight:500;
+  border:1px solid transparent;
+}
+.slot-chip.breakfast{background:#FDF3E7;color:#854F0B;border-color:#F4DFB8}
+.slot-chip.meal1{background:#E8F3F3;color:#2A6A68;border-color:#BDD9D8}
+.slot-chip.meal2{background:#EDF2EE;color:#3B5C3E;border-color:#C0D4C2}
+.slot-chip.snack{background:#EEEDFE;color:#4B44A6;border-color:#C5C2F0}
+.slot-chip-dot{width:6px;height:6px;border-radius:50%}
+.slot-chip.breakfast .slot-chip-dot{background:var(--slot-b)}
+.slot-chip.meal1 .slot-chip-dot{background:var(--slot-1)}
+.slot-chip.meal2 .slot-chip-dot{background:var(--slot-2)}
+.slot-chip.snack .slot-chip-dot{background:var(--slot-s)}
+ 
+/* ── DAY LIST SCREEN ─────────────────── */
+.day-list-section{padding:16px 16px 0}
+.section-heading{
+  font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--t3);padding:0 4px;margin-bottom:8px
+}
+.meal-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:14px;padding:14px 16px;margin-bottom:10px;
+  cursor:pointer;transition:transform .1s;
+  display:flex;align-items:flex-start;gap:12px;
+}
+.meal-card:active{transform:scale(.98)}
+.meal-card-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:5px;
+}
+.meal-card-body{flex:1;min-width:0}
+.meal-card-slot{font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.meal-card-slot.breakfast{color:var(--slot-b)}
+.meal-card-slot.meal1{color:var(--slot-1)}
+.meal-card-slot.meal2{color:var(--slot-2)}
+.meal-card-slot.snack{color:var(--slot-s)}
+.meal-card-title{font-size:15px;font-weight:400;color:var(--t1);line-height:1.35;margin-bottom:4px}
+.meal-card-meta{font-size:12px;color:var(--t3)}
+.meal-card-arrow{color:var(--bstrong);font-size:18px;flex-shrink:0;align-self:center}
+ 
+/* ── RECIPE SCREEN ───────────────────── */
+.recipe-slot-label{
+  font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;
+  margin-bottom:6px;
+}
+.recipe-slot-label.breakfast{color:var(--slot-b)}
+.recipe-slot-label.meal1{color:var(--slot-1)}
+.recipe-slot-label.meal2{color:var(--slot-2)}
+.recipe-slot-label.snack{color:var(--slot-s)}
+ 
+.recipe-head{padding:20px 20px 0}
+.recipe-title{font-family:'Lora',serif;font-size:24px;line-height:1.3;color:var(--t1);margin-bottom:10px}
+.recipe-desc{font-size:14px;color:var(--t2);line-height:1.65;margin-bottom:12px}
+.recipe-meta-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.meta-pill{
+  display:flex;align-items:center;gap:5px;
+  background:var(--cream);border:1px solid var(--border);
+  border-radius:99px;padding:4px 10px;font-size:12px;color:var(--t2);
+}
+.meta-pill svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.tags-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.tag{font-size:11px;font-weight:500;padding:3px 9px;border-radius:99px}
 .tag-teal{background:var(--teal-light);color:var(--teal)}
 .tag-amber{background:var(--amber-light);color:var(--amber)}
 .tag-coral{background:var(--coral-light);color:var(--coral)}
 .tag-sage{background:var(--sage-light);color:var(--sage-dark)}
 .tag-purple{background:var(--purple-light);color:var(--purple)}
-hr.div{border:none;border-top:1px solid var(--border);margin:1.75rem 0}
-
-/* ── INGREDIENTS ────────────────────── */
-.section-title{font-family:'Lora',serif;font-size:20px;color:var(--text-1);margin-bottom:1.1rem}
+ 
+.recipe-divider{height:1px;background:var(--border);margin:20px 20px 0}
+ 
+/* Ingredients */
+.recipe-section{padding:20px 20px 0}
+.section-title{font-family:'Lora',serif;font-size:19px;color:var(--t1);margin-bottom:12px}
 .seed-callout{
-  background:var(--sage-light);border-radius:8px;
-  padding:.65rem 1rem;margin-bottom:1rem;
-  font-size:13px;color:var(--sage-dark);line-height:1.5
+  background:var(--sage-light);border-radius:10px;
+  padding:10px 14px;margin-bottom:12px;
+  font-size:13px;color:var(--sage-dark);line-height:1.5;
 }
 .seed-callout strong{font-weight:500}
-.ing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:7px;margin-bottom:1.75rem}
+.ing-list{display:flex;flex-direction:column;gap:7px}
 .ing-row{
-  display:flex;align-items:baseline;gap:7px;
-  padding:9px 12px;background:var(--warm-white);
-  border:1px solid var(--border);border-radius:8px;font-size:13.5px
+  display:flex;align-items:baseline;gap:8px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:10px;padding:10px 13px;
 }
-.ing-row.seed-highlight{border-color:var(--sage);background:var(--sage-light)}
-.ing-qty{font-weight:500;color:var(--sage-dark);min-width:60px;font-size:12.5px}
-.ing-name{color:var(--text-1)}
-.ing-note{font-size:11.5px;color:var(--text-3);margin-left:auto;font-style:italic;text-align:right}
-
-/* ── STEPS ──────────────────────────── */
-.steps{display:flex;flex-direction:column;gap:1rem}
+.ing-row.seed-hl{border-color:var(--sage);background:var(--sage-light)}
+.ing-qty{font-weight:500;color:var(--sage-dark);font-size:13px;min-width:64px;flex-shrink:0}
+.ing-name{font-size:14px;color:var(--t1);flex:1}
+.ing-note{font-size:12px;color:var(--t3);font-style:italic;text-align:right;flex-shrink:0;max-width:130px}
+ 
+/* Steps */
+.steps-list{display:flex;flex-direction:column;gap:10px}
 .step{
-  display:flex;gap:1.1rem;padding:1.1rem 1.25rem;
-  background:var(--warm-white);border:1px solid var(--border);border-radius:10px
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;padding:14px 16px;display:flex;gap:12px;
 }
-.step-num{font-family:'Lora',serif;font-size:21px;color:var(--border-strong);min-width:26px;line-height:1;padding-top:2px}
-.step-body{flex:1}
-.step-title{font-weight:500;font-size:14px;color:var(--text-1);margin-bottom:3px}
-.step-text{font-size:13.5px;color:var(--text-2);line-height:1.7}
+.step-num{
+  font-family:'Lora',serif;font-size:20px;color:var(--bstrong);
+  min-width:24px;line-height:1;flex-shrink:0;padding-top:1px;
+}
+.step-body{flex:1;min-width:0}
+.step-title{font-weight:500;font-size:14px;color:var(--t1);margin-bottom:4px}
+.step-text{font-size:13.5px;color:var(--t2);line-height:1.65}
 .step-tip{
-  margin-top:7px;padding:7px 11px;background:var(--amber-light);
-  border-radius:6px;font-size:12.5px;color:var(--amber);line-height:1.5
+  margin-top:8px;padding:8px 12px;background:var(--amber-light);
+  border-radius:8px;font-size:13px;color:var(--amber);line-height:1.5;
 }
 .step-tip::before{content:"💡 Tip: ";font-weight:500}
 .step-warn{
-  margin-top:7px;padding:7px 11px;background:var(--coral-light);
-  border-radius:6px;font-size:12.5px;color:var(--coral);line-height:1.5
+  margin-top:8px;padding:8px 12px;background:var(--coral-light);
+  border-radius:8px;font-size:13px;color:var(--coral);line-height:1.5;
 }
-.step-warn::before{content:"⚠️ Watch out: ";font-weight:500}
-
-/* ── NAV BUTTONS ────────────────────── */
-.nav-btns{
-  display:flex;justify-content:space-between;
-  margin-top:2.5rem;padding-top:1.75rem;border-top:1px solid var(--border)
+.step-warn::before{content:"⚠️ Watch: ";font-weight:500}
+ 
+/* Prev/next nav at bottom of recipe */
+.recipe-nav{
+  display:flex;gap:10px;padding:20px;
 }
-.nav-btn{
-  padding:9px 18px;border:1px solid var(--border-strong);border-radius:8px;
-  background:var(--warm-white);font-family:'DM Sans',sans-serif;font-size:13px;
-  color:var(--text-2);cursor:pointer;transition:all .13s;max-width:48%
+.recipe-nav-btn{
+  flex:1;padding:12px 16px;border:1px solid var(--bstrong);
+  border-radius:12px;background:var(--white);
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--t2);cursor:pointer;text-align:left;
+  display:flex;flex-direction:column;gap:2px;
+  transition:background .12s;
+  min-width:0;
 }
-.nav-btn:hover{background:var(--sage-light);color:var(--sage-dark);border-color:var(--sage)}
-.nav-btn:disabled{opacity:.35;cursor:default;background:transparent}
-
-/* ── WELCOME ────────────────────────── */
-.welcome{max-width:580px;padding:1.5rem 0}
-.welcome-title{font-family:'Lora',serif;font-size:36px;line-height:1.2;margin-bottom:1.1rem}
-.welcome-body{font-size:15px;color:var(--text-2);line-height:1.8;margin-bottom:1.5rem}
-.rules{display:flex;flex-direction:column;gap:9px}
-.rule{
-  display:flex;gap:11px;padding:11px 14px;
-  background:var(--warm-white);border:1px solid var(--border);border-radius:8px
+.recipe-nav-btn:active{background:var(--sage-light)}
+.recipe-nav-btn:disabled{opacity:.3;cursor:default}
+.recipe-nav-btn span.dir{font-size:11px;color:var(--t3);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.recipe-nav-btn span.lbl{font-size:13px;color:var(--t1);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recipe-nav-btn.next{text-align:right}
+ 
+/* ── SEARCH / BROWSE SCREEN ──────────── */
+.search-bar-wrap{padding:16px 16px 8px}
+.search-bar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--white);border:1px solid var(--border);
+  border-radius:12px;padding:11px 14px;
 }
-.rule-icon{font-size:17px;min-width:22px}
-.rule-text{font-size:13px;color:var(--text-2);line-height:1.5}
-.rule-text strong{color:var(--text-1);font-weight:500}
-.slot-key{
-  display:flex;flex-wrap:wrap;gap:10px;
-  padding:1rem 1.25rem;background:var(--warm-white);
-  border:1px solid var(--border);border-radius:8px;margin-top:1.25rem
+.search-bar svg{width:16px;height:16px;stroke:var(--t3);fill:none;stroke-width:2;flex-shrink:0}
+.search-bar input{
+  flex:1;border:none;background:transparent;font-family:'DM Sans',sans-serif;
+  font-size:15px;color:var(--t1);outline:none;
 }
-.slot-key-item{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text-2)}
-.slot-circle{width:10px;height:10px;border-radius:50%}
-
-@media(max-width:768px){
-  .app{flex-direction:column}
-  .sidebar{width:100%;height:auto;position:static;border-right:none;border-bottom:1px solid var(--border);padding:1rem 0}
-  .main{padding:1.5rem 1.25rem}
-  .recipe-title{font-size:24px}
+.search-bar input::placeholder{color:var(--t3)}
+.search-results{padding:0 16px}
+.no-results{padding:40px 20px;text-align:center;color:var(--t3);font-size:14px}
+ 
+/* ── TIPS SCREEN ─────────────────────── */
+.tips-content{padding:20px}
+.tip-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:14px;padding:16px;margin-bottom:12px;
 }
+.tip-card-icon{font-size:22px;margin-bottom:8px}
+.tip-card-title{font-family:'Lora',serif;font-size:16px;color:var(--t1);margin-bottom:6px}
+.tip-card-body{font-size:13.5px;color:var(--t2);line-height:1.65}
+.tip-card-body strong{color:var(--t1);font-weight:500}
+ 
+/* ── SAFE AREA ───────────────────────── */
+.safe-bottom{height:env(safe-area-inset-bottom)}
 </style>
 </head>
 <body>
-<div class="app">
-  <nav class="sidebar" id="sidebar"></nav>
-  <main class="main" id="main"></main>
+ 
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 1: HOME — Day picker
+════════════════════════════════════════════════════ -->
+<div class="screen visible" id="screen-home">
+  <div class="scroll-body">
+    <div class="home-hero">
+      <div class="home-greeting">Your meal plan</div>
+      <div class="home-title">What are we<br>cooking today?</div>
+      <div class="home-sub">Tap a day to browse meals and snacks</div>
+    </div>
+    <div class="day-cards" id="day-cards"></div>
+    <div style="height:8px"></div>
+  </div>
+  <nav class="bottom-nav" id="bottom-nav-home">
+    <button class="nav-tab active" onclick="goHome()">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Days</span>
+    </button>
+    <button class="nav-tab" onclick="goSearch()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </button>
+    <button class="nav-tab" onclick="goTips()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Tips</span>
+    </button>
+  </nav>
 </div>
-
+ 
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 2: DAY — Meal list for selected day
+════════════════════════════════════════════════════ -->
+<div class="screen hidden-right" id="screen-day">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="topbar-title" id="day-screen-title">Monday</div>
+    <div class="topbar-sub" id="day-screen-sub">4 items</div>
+  </div>
+  <div class="scroll-body no-nav" id="day-meal-list"></div>
+</div>
+ 
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 3: RECIPE — Full recipe view
+════════════════════════════════════════════════════ -->
+<div class="screen hidden-right" id="screen-recipe">
+  <div class="topbar">
+    <button class="topbar-back" id="recipe-back-btn" onclick="backFromRecipe()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="topbar-title" id="recipe-topbar-title"></div>
+  </div>
+  <div class="scroll-body no-nav" id="recipe-content"></div>
+</div>
+ 
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 4: SEARCH
+════════════════════════════════════════════════════ -->
+<div class="screen hidden-right" id="screen-search">
+  <div class="topbar">
+    <div class="topbar-title">Search recipes</div>
+  </div>
+  <div class="scroll-body">
+    <div class="search-bar-wrap">
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="search-input" placeholder="Salmon, chia, kofta…" oninput="doSearch(this.value)" autocomplete="off" autocorrect="off" spellcheck="false">
+      </div>
+    </div>
+    <div class="search-results" id="search-results">
+      <div class="no-results" style="padding-top:60px">
+        <div style="font-size:32px;margin-bottom:12px">🔍</div>
+        <div>Type an ingredient, meal name,<br>or keyword to search</div>
+      </div>
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-tab" onclick="goHome()">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Days</span>
+    </button>
+    <button class="nav-tab active" onclick="goSearch()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </button>
+    <button class="nav-tab" onclick="goTips()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Tips</span>
+    </button>
+  </nav>
+</div>
+ 
+<!-- ═══════════════════════════════════════════════════
+     SCREEN 5: TIPS
+════════════════════════════════════════════════════ -->
+<div class="screen hidden-right" id="screen-tips">
+  <div class="topbar">
+    <div class="topbar-title">Plan guide & tips</div>
+  </div>
+  <div class="scroll-body">
+    <div class="tips-content">
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">🧊</div>
+        <div class="tip-card-title">Always cook fresh</div>
+        <div class="tip-card-body">Histamine builds in food as it ages. Cook and eat each meal the same day. If prepping ahead, freeze same-day portions <strong>immediately</strong> — don't refrigerate protein overnight.</div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">🌱</div>
+        <div class="tip-card-title">The flaxseed rule</div>
+        <div class="tip-card-body"><strong>Always grind flaxseed immediately before use.</strong> Pre-ground or stored ground flaxseed oxidises rapidly and can trigger MCAS reactions. Buy whole flaxseeds and grind in a small spice or coffee grinder right before eating. Takes 10 seconds.</div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">🌿</div>
+        <div class="tip-card-title">Seeds at a glance</div>
+        <div class="tip-card-body">
+          <strong>Chia seeds</strong> — omega-3 ALA, fibre; add to porridge, eggs, or batters. Can be pre-measured.<br><br>
+          <strong>Milled flaxseed</strong> — highest plant omega-3 source; grind fresh each time, stir into hot food immediately.<br><br>
+          <strong>Pumpkin seeds</strong> — richest food source of magnesium; scatter over bowls, stir into rice or mash. Buy raw, unsalted.<br><br>
+          <strong>Hemp seeds</strong> — omega-3 ALA + complete protein; mild flavour, sprinkle over anything.
+        </div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">🫒</div>
+        <div class="tip-card-title">EVOO is your main fat</div>
+        <div class="tip-card-body"><strong>Extra virgin olive oil</strong> is used throughout this plan. Aim for at least 2 tablespoons per day — it is one of the most evidence-backed cardiovascular foods available. Use it for cooking, roasting, and as a finishing drizzle.</div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">🧄</div>
+        <div class="tip-card-title">Garlic tip</div>
+        <div class="tip-card-body">Crush or chop garlic and <strong>wait 10 minutes before cooking</strong>. This activates allicin — the compound responsible for garlic's LDL-lowering and blood pressure benefits. Already chopped garlic that goes straight into a hot pan loses most of this benefit.</div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">📅</div>
+        <div class="tip-card-title">Meal structure</div>
+        <div class="tip-card-body">
+          <strong>Breakfast</strong> — optional lighter start. Great for days when you wake hungry or want to spread intake.<br><br>
+          <strong>Meal 1</strong> (~10–11 AM) — main protein-anchored meal. Stabilises blood sugar for the day.<br><br>
+          <strong>Meal 2</strong> (~5–6 PM) — evening meal.<br><br>
+          <strong>Snack</strong> — low-histamine, heart-healthy. Eat between meals if energy dips.
+        </div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">💛</div>
+        <div class="tip-card-title">Turmeric + black pepper</div>
+        <div class="tip-card-body">Always pair turmeric with a pinch of black pepper. Piperine in black pepper increases curcumin absorption by up to 2000%. This combination is already in most recipes but keep it in mind when adding turmeric elsewhere.</div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">⚠️</div>
+        <div class="tip-card-title">MCAS food safety</div>
+        <div class="tip-card-body">
+          <strong>Avoid:</strong> aged/fermented foods, vinegar-based dressings, smoked fish, canned fish, alcohol, tomatoes, strawberries, citrus juice, chocolate, leftover protein.<br><br>
+          <strong>Trial cautiously:</strong> avocado, spinach, eggplant, pre-packaged walnuts.<br><br>
+          <strong>Safe:</strong> freshly cooked chicken/turkey/fish, fresh eggs, all vegetables in this plan, fresh low-sugar fruit, oats, legumes cooked same-day.
+        </div>
+      </div>
+ 
+      <div class="tip-card">
+        <div class="tip-card-icon">❤️</div>
+        <div class="tip-card-title">About Lp(a)</div>
+        <div class="tip-card-body">Lp(a) is ~90% genetically determined and responds minimally to diet alone. Diet here is about reducing overall cardiovascular risk — cutting saturated fat, boosting soluble fibre, and maximising omega-3. If your Lp(a) is significantly elevated (&gt;50 mg/dL), discuss PCSK9 inhibitors or RNA-targeted therapies with your cardiologist.</div>
+      </div>
+ 
+    </div>
+  </div>
+  <nav class="bottom-nav">
+    <button class="nav-tab" onclick="goHome()">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Days</span>
+    </button>
+    <button class="nav-tab" onclick="goSearch()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>Search</span>
+    </button>
+    <button class="nav-tab active" onclick="goTips()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Tips</span>
+    </button>
+  </nav>
+</div>
+ 
+<!-- DATA INJECTED HERE -->
 <script>
 const DATA = {
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // MONDAY
 // ─────────────────────────────────────────────────────────────────
@@ -289,7 +597,7 @@ monday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // TUESDAY
 // ─────────────────────────────────────────────────────────────────
@@ -392,7 +700,7 @@ tuesday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // WEDNESDAY
 // ─────────────────────────────────────────────────────────────────
@@ -489,7 +797,7 @@ wednesday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // THURSDAY
 // ─────────────────────────────────────────────────────────────────
@@ -598,7 +906,7 @@ thursday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // FRIDAY
 // ─────────────────────────────────────────────────────────────────
@@ -694,7 +1002,7 @@ friday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // SATURDAY
 // ─────────────────────────────────────────────────────────────────
@@ -807,7 +1115,7 @@ saturday: {
     ]
   }
 },
-
+ 
 // ─────────────────────────────────────────────────────────────────
 // SUNDAY
 // ─────────────────────────────────────────────────────────────────
@@ -909,197 +1217,279 @@ sunday: {
     ]
   }
 }
-
+ 
 }; // end DATA
-
+ 
 </script>
+ 
+ 
 <script>
-// ── Inline data (generated from planning) ─────────────────────────────────────
 const DATA_DAYS = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
 const SLOT_ORDER = ["breakfast","meal1","meal2","snack"];
 const SLOT_META = {
-  breakfast: {label:"Breakfast",cls:"breakfast",dotCls:"breakfast"},
-  meal1:     {label:"Meal 1",cls:"meal-1",dotCls:"meal1"},
-  meal2:     {label:"Meal 2",cls:"meal-2",dotCls:"meal2"},
-  snack:     {label:"Snack",cls:"snack",dotCls:"snack"},
+  breakfast:{label:"Breakfast",cls:"breakfast",color:"var(--slot-b)"},
+  meal1:    {label:"Meal 1",   cls:"meal1",    color:"var(--slot-1)"},
+  meal2:    {label:"Meal 2",   cls:"meal2",    color:"var(--slot-2)"},
+  snack:    {label:"Snack",    cls:"snack",     color:"var(--slot-s)"},
 };
-
-const SEED_NAMES = ["chia","flaxseed","pumpkin seed","hemp seed"];
-
-function isSeedIngredient(name){
-  const n = name.toLowerCase();
-  return SEED_NAMES.some(s => n.includes(s));
-}
-
-function buildNav(){
-  let html = `
-    <div class="sidebar-head">
-      <div class="sidebar-title">Weekly meal plan</div>
-      <div class="sidebar-sub">3 meals + snack · 7 days · beginner-friendly</div>
-    </div>`;
-
-  DATA_DAYS.forEach(dayKey => {
-    const day = DATA[dayKey];
-    html += `<div class="day-group"><span class="day-label">${day.label}</span>`;
-    SLOT_ORDER.forEach(slot => {
-      const rec = day[slot];
-      if(!rec) return;
-      const m = SLOT_META[slot];
-      html += `<a class="meal-link" data-id="${rec.id}" onclick="show('${rec.id}')">
-        <span class="slot-dot ${m.dotCls}"></span>
-        <span>${rec.title}</span>
-      </a>`;
-    });
-    html += `</div>`;
+const SEED_TERMS = ["chia","flaxseed","pumpkin seed","hemp seed"];
+function isSeed(n){return SEED_TERMS.some(s=>n.toLowerCase().includes(s))}
+ 
+let currentDay = null;
+let currentRecipeId = null;
+let prevScreen = 'home';
+ 
+// ── Navigation ────────────────────────────────────────────────────
+function setScreen(to, direction='right'){
+  const all = ['home','day','recipe','search','tips'];
+  const toEl = document.getElementById('screen-'+to);
+  toEl.classList.remove('hidden-right','hidden-left');
+  toEl.classList.add('visible');
+  all.filter(s=>s!==to).forEach(s=>{
+    const el = document.getElementById('screen-'+s);
+    el.classList.remove('visible');
+    el.classList.add(direction==='right' ? 'hidden-right' : 'hidden-left');
   });
-
-  html += `
-    <div class="legend-strip">
-      <span class="legend-item"><span class="slot-dot breakfast" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Breakfast</span>
-      <span class="legend-item"><span class="slot-dot meal1" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Meal 1</span>
-      <span class="legend-item"><span class="slot-dot meal2" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Meal 2</span>
-      <span class="legend-item"><span class="slot-dot snack" style="width:8px;height:8px;border-radius:50%;flex-shrink:0"></span> Snack</span>
-    </div>`;
-
-  document.getElementById('sidebar').innerHTML = html;
 }
-
-function getRecipeById(id){
-  for(const dayKey of DATA_DAYS){
+ 
+function goHome(){
+  setScreen('home','left');
+}
+ 
+function goDay(dayKey){
+  currentDay = dayKey;
+  buildDayList(dayKey);
+  document.getElementById('day-screen-title').textContent = DATA[dayKey].label;
+  const count = SLOT_ORDER.filter(s=>DATA[dayKey][s]).length;
+  document.getElementById('day-screen-sub').textContent = count + ' items';
+  prevScreen = 'home';
+  setScreen('day','right');
+}
+ 
+function goRecipe(id, from){
+  currentRecipeId = id;
+  prevScreen = from || 'day';
+  buildRecipe(id);
+  setScreen('recipe','right');
+  document.getElementById('recipe-content').scrollTop = 0;
+}
+ 
+function backFromRecipe(){
+  setScreen(prevScreen, 'left');
+}
+ 
+function goSearch(){
+  setScreen('search','right');
+  setTimeout(()=>document.getElementById('search-input').focus(),300);
+}
+ 
+function goTips(){
+  setScreen('tips','right');
+}
+ 
+// ── Build home day cards ──────────────────────────────────────────
+function buildHome(){
+  const container = document.getElementById('day-cards');
+  container.innerHTML = DATA_DAYS.map(dayKey=>{
     const day = DATA[dayKey];
-    for(const slot of SLOT_ORDER){
-      const rec = day[slot];
-      if(rec && rec.id === id) return rec;
+    const chips = SLOT_ORDER.filter(s=>day[s]).map(s=>{
+      const m = SLOT_META[s];
+      return `<span class="slot-chip ${s}">
+        <span class="slot-chip-dot"></span>${m.label}
+      </span>`;
+    }).join('');
+    return `<div class="day-card" onclick="goDay('${dayKey}')">
+      <div class="day-card-head">
+        <span class="day-card-label">${day.label}</span>
+        <span class="day-card-count">${SLOT_ORDER.filter(s=>day[s]).length} items ›</span>
+      </div>
+      <div class="day-slots">${chips}</div>
+    </div>`;
+  }).join('');
+}
+ 
+// ── Build day meal list ───────────────────────────────────────────
+function buildDayList(dayKey){
+  const day = DATA[dayKey];
+  const container = document.getElementById('day-meal-list');
+  let html = '<div style="height:8px"></div>';
+  SLOT_ORDER.forEach(slot=>{
+    const rec = day[slot];
+    if(!rec) return;
+    const m = SLOT_META[slot];
+    html += `<div class="day-list-section">
+      <div class="meal-card" onclick="goRecipe('${rec.id}','day')">
+        <div class="meal-card-dot" style="background:${m.color}"></div>
+        <div class="meal-card-body">
+          <div class="meal-card-slot ${slot}">${m.label}</div>
+          <div class="meal-card-title">${rec.title}</div>
+          <div class="meal-card-meta">${rec.time||''} · ${rec.difficulty||''}</div>
+        </div>
+        <div class="meal-card-arrow">›</div>
+      </div>
+    </div>`;
+  });
+  html += '<div style="height:16px"></div>';
+  container.innerHTML = html;
+}
+ 
+// ── Build recipe ──────────────────────────────────────────────────
+function getRecipe(id){
+  for(const dk of DATA_DAYS){
+    for(const s of SLOT_ORDER){
+      const r = DATA[dk][s];
+      if(r&&r.id===id) return r;
     }
   }
   return null;
 }
-
+ 
 function getAllRecipes(){
-  const list = [];
-  DATA_DAYS.forEach(dayKey => {
-    SLOT_ORDER.forEach(slot => {
-      const rec = DATA[dayKey][slot];
-      if(rec) list.push(rec);
-    });
-  });
+  const list=[];
+  DATA_DAYS.forEach(dk=>SLOT_ORDER.forEach(s=>{
+    const r=DATA[dk][s]; if(r) list.push(r);
+  }));
   return list;
 }
-
-function show(id){
-  const rec = getRecipeById(id);
+ 
+function buildRecipe(id){
+  const rec = getRecipe(id);
   if(!rec) return;
-
-  document.querySelectorAll('.meal-link').forEach(el =>
-    el.classList.toggle('active', el.dataset.id === id));
-
-  const slotMeta = SLOT_META[rec.slot.replace(' ','').replace('meal','meal')] ||
-    Object.values(SLOT_META).find(m => m.label.toLowerCase() === rec.slot.toLowerCase()) ||
-    SLOT_META.meal1;
-
-  const slotKey = Object.keys(SLOT_META).find(k => SLOT_META[k].label === rec.slot) ||
-    (rec.slot === 'breakfast' ? 'breakfast' :
-     rec.slot === 'meal 1' ? 'meal1' :
-     rec.slot === 'meal 2' ? 'meal2' : 'snack');
-  const sm = SLOT_META[slotKey] || SLOT_META.meal1;
-
-  const hasSeedIng = rec.ingredients && rec.ingredients.some(i => isSeedIngredient(i.name));
-
+ 
+  const slotKey = SLOT_ORDER.find(s=>
+    DATA_DAYS.some(dk=> DATA[dk][s] && DATA[dk][s].id===id)
+  ) || 'meal1';
+  const sm = SLOT_META[slotKey];
+ 
+  document.getElementById('recipe-topbar-title').textContent = sm.label;
+ 
+  const hasSeed = (rec.ingredients||[]).some(i=>isSeed(i.name));
   const tagHtml = (rec.tags||[]).map(([t,c])=>`<span class="tag tag-${c}">${t}</span>`).join('');
-
-  const seedCallout = hasSeedIng ? `
-    <div class="seed-callout">
-      <strong>Seeds in this recipe:</strong> Highlighted ingredients below contain chia seeds, freshly milled flaxseed, or pumpkin seeds — superfoods added for cardiovascular and MCAS benefit. Always grind flaxseed fresh immediately before use.
-    </div>` : '';
-
-  const ingHtml = (rec.ingredients||[]).map(i => {
-    const hl = isSeedIngredient(i.name) ? ' seed-highlight' : '';
-    return `<div class="ing-row${hl}">
+ 
+  const ingHtml = (rec.ingredients||[]).map(i=>`
+    <div class="ing-row ${isSeed(i.name)?'seed-hl':''}">
       <span class="ing-qty">${i.qty}</span>
       <span class="ing-name">${i.name}</span>
-      ${i.note ? `<span class="ing-note">${i.note}</span>` : ''}
-    </div>`;
-  }).join('');
-
-  const stepHtml = (rec.steps||[]).map((s,i)=>{
-    let extra = '';
-    if(s.tip) extra += `<div class="step-tip">${s.tip}</div>`;
-    if(s.warn) extra += `<div class="step-warn">${s.warn}</div>`;
-    return `<div class="step">
+      ${i.note?`<span class="ing-note">${i.note}</span>`:''}
+    </div>`).join('');
+ 
+  const stepHtml = (rec.steps||[]).map((s,i)=>`
+    <div class="step">
       <div class="step-num">${i+1}</div>
       <div class="step-body">
         <div class="step-title">${s.title}</div>
         <div class="step-text">${s.text}</div>
-        ${extra}
+        ${s.tip?`<div class="step-tip">${s.tip}</div>`:''}
+        ${s.warn?`<div class="step-warn">${s.warn}</div>`:''}
       </div>
-    </div>`;
-  }).join('');
-
+    </div>`).join('');
+ 
   const all = getAllRecipes();
-  const idx = all.findIndex(r => r.id === id);
+  const idx = all.findIndex(r=>r.id===id);
   const prev = all[idx-1];
   const next = all[idx+1];
-
-  const serves = rec.serves === 1 ? '1 serving' :
-    rec.serves ? `${rec.serves} servings` : '1 serving';
-
-  document.getElementById('main').innerHTML = `
-    <div>
-      <div class="recipe-slot ${sm.cls}">${sm.label}</div>
+ 
+  const html = `
+    <div class="recipe-head">
+      <div class="recipe-slot-label ${slotKey}">${sm.label}</div>
       <h1 class="recipe-title">${rec.title}</h1>
       <p class="recipe-desc">${rec.desc}</p>
-      <div class="recipe-meta">
-        <span class="meta-item"><span class="meta-dot"></span>${rec.time||''}</span>
-        <span class="meta-item"><span class="meta-dot"></span>${rec.difficulty||''}</span>
-        <span class="meta-item"><span class="meta-dot"></span>${serves}</span>
+      <div class="recipe-meta-row">
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${rec.time||''}
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          ${rec.difficulty||''}
+        </span>
+        <span class="meta-pill">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          ${rec.serves===1?'1 serving':(rec.serves||1)+' servings'}
+        </span>
       </div>
-      <div class="tags">${tagHtml}</div>
+      <div class="tags-row">${tagHtml}</div>
     </div>
-    <hr class="div">
-    <h2 class="section-title">Ingredients</h2>
-    ${seedCallout}
-    <div class="ing-grid">${ingHtml}</div>
-    <h2 class="section-title">Method</h2>
-    <div class="steps">${stepHtml}</div>
-    <div class="nav-btns">
-      <button class="nav-btn" onclick="show('${prev?.id}')" ${!prev?'disabled':''}>
-        ← ${prev ? prev.title.slice(0,36)+(prev.title.length>36?'…':'') : 'Start'}
+ 
+    <div class="recipe-divider"></div>
+ 
+    <div class="recipe-section">
+      <div class="section-title">Ingredients</div>
+      ${hasSeed?`<div class="seed-callout"><strong>🌱 Seeds in this recipe</strong> — highlighted below. Always grind flaxseed fresh immediately before use.</div>`:''}
+      <div class="ing-list">${ingHtml}</div>
+    </div>
+ 
+    <div class="recipe-divider"></div>
+ 
+    <div class="recipe-section">
+      <div class="section-title">Method</div>
+      <div class="steps-list">${stepHtml}</div>
+    </div>
+ 
+    <div class="recipe-nav">
+      <button class="recipe-nav-btn" onclick="goRecipe('${prev?.id}','day')" ${!prev?'disabled':''}>
+        <span class="dir">← Previous</span>
+        <span class="lbl">${prev?prev.title.slice(0,40)+(prev.title.length>40?'…':''):'–'}</span>
       </button>
-      <button class="nav-btn" onclick="show('${next?.id}')" ${!next?'disabled':''}>
-        ${next ? next.title.slice(0,36)+(next.title.length>36?'…':'') : 'End'} →
+      <button class="recipe-nav-btn next" onclick="goRecipe('${next?.id}','day')" ${!next?'disabled':''}>
+        <span class="dir">Next →</span>
+        <span class="lbl">${next?next.title.slice(0,40)+(next.title.length>40?'…':''):'–'}</span>
       </button>
-    </div>`;
-
-  window.scrollTo({top:0,behavior:'smooth'});
+    </div>
+    <div style="height:8px"></div>`;
+ 
+  document.getElementById('recipe-content').innerHTML = html;
 }
-
-function showWelcome(){
-  document.getElementById('main').innerHTML = `
-    <div class="welcome">
-      <h1 class="welcome-title">Your personalised<br><em>weekly recipe book</em></h1>
-      <p class="welcome-body">
-        All recipes are single-serving (unless noted), designed to be cooked and eaten fresh.
-        Each day now has a breakfast option, two main meals, and a snack —
-        pick whichever combination suits your energy on the day.
-      </p>
-      <div class="slot-key">
-        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-b)"></span> <strong>Breakfast</strong> — optional lighter start</span>
-        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-1)"></span> <strong>Meal 1</strong> — your primary late-morning meal</span>
-        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-2)"></span> <strong>Meal 2</strong> — your primary evening meal</span>
-        <span class="slot-key-item"><span class="slot-circle" style="background:var(--slot-s)"></span> <strong>Snack</strong> — low-histamine, heart-healthy</span>
-      </div>
-      <div class="rules" style="margin-top:1.25rem">
-        <div class="rule"><div class="rule-icon">🧊</div><div class="rule-text"><strong>Always cook fresh.</strong> Histamine builds as food ages. Cook and eat each meal the same day. If prepping ahead, freeze same-day portions immediately.</div></div>
-        <div class="rule"><div class="rule-icon">🌱</div><div class="rule-text"><strong>Seed rule:</strong> Seed-containing ingredients are highlighted in green. <strong>Always grind flaxseed immediately before use</strong> — never pre-ground or stored ground. Chia and pumpkin seeds can be pre-measured.</div></div>
-        <div class="rule"><div class="rule-icon">💡</div><div class="rule-text"><strong>Amber tip boxes</strong> are helpful shortcuts. <strong>Red warning boxes</strong> matter for food safety or recipe success. Read before cooking.</div></div>
-        <div class="rule"><div class="rule-icon">⏱</div><div class="rule-text"><strong>Read each recipe before starting.</strong> Many recipes have multiple things going simultaneously — the method tells you when to start each component.</div></div>
-        <div class="rule"><div class="rule-icon">🫒</div><div class="rule-text"><strong>EVOO</strong> is extra virgin olive oil — your primary cooking fat throughout. Use generously.</div></div>
-      </div>
+ 
+// ── Search ────────────────────────────────────────────────────────
+function doSearch(query){
+  const q = query.trim().toLowerCase();
+  const container = document.getElementById('search-results');
+  if(!q){
+    container.innerHTML = `<div class="no-results" style="padding-top:60px">
+      <div style="font-size:32px;margin-bottom:12px">🔍</div>
+      <div>Type an ingredient, meal name,<br>or keyword to search</div>
     </div>`;
+    return;
+  }
+  const all = getAllRecipes();
+  const results = all.filter(r=>{
+    const haystack = [
+      r.title, r.desc||'',
+      ...(r.tags||[]).map(t=>t[0]),
+      ...(r.ingredients||[]).map(i=>i.name+' '+(i.note||'')),
+      ...(r.steps||[]).map(s=>s.title+' '+s.text),
+    ].join(' ').toLowerCase();
+    return q.split(' ').every(word=>haystack.includes(word));
+  });
+ 
+  if(!results.length){
+    container.innerHTML = `<div class="no-results">
+      <div style="font-size:32px;margin-bottom:12px">😕</div>
+      <div>No recipes found for<br><strong>"${query}"</strong></div>
+    </div>`;
+    return;
+  }
+ 
+  container.innerHTML = results.map(r=>{
+    const slotKey = SLOT_ORDER.find(s=>
+      DATA_DAYS.some(dk=> DATA[dk][s] && DATA[dk][s].id===r.id)
+    )||'meal1';
+    const dayKey = DATA_DAYS.find(dk=>SLOT_ORDER.some(s=>DATA[dk][s]&&DATA[dk][s].id===r.id));
+    const sm = SLOT_META[slotKey];
+    return `<div class="meal-card" onclick="goRecipe('${r.id}','search')" style="margin-bottom:10px">
+      <div class="meal-card-dot" style="background:${sm.color}"></div>
+      <div class="meal-card-body">
+        <div class="meal-card-slot ${slotKey}">${DATA[dayKey]?.label||''} · ${sm.label}</div>
+        <div class="meal-card-title">${r.title}</div>
+        <div class="meal-card-meta">${r.time||''} · ${r.difficulty||''}</div>
+      </div>
+      <div class="meal-card-arrow">›</div>
+    </div>`;
+  }).join('');
 }
-
-buildNav();
-showWelcome();
+ 
+buildHome();
 </script>
 </body>
 </html>
