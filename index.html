@@ -1219,6 +1219,65 @@ select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
   font-size:15px;color:var(--ink-3);line-height:1.6;
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   PANTRY MANAGER SHEET (accessible from shopping list)
+══════════════════════════════════════════════════════════════ */
+.pantry-sheet{
+  position:fixed;inset:0;z-index:270;
+  background:rgba(26,24,20,.55);
+  display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.pantry-sheet.open{opacity:1;pointer-events:all}
+.pantry-panel{
+  width:100%;background:var(--paper-mid);
+  border-radius:22px 22px 0 0;
+  max-height:85vh;display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.4,0,.2,1);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.pantry-sheet.open .pantry-panel{transform:translateY(0)}
+.pantry-panel-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--border-strong);margin:12px auto 0;flex-shrink:0;
+}
+.pantry-panel-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px 10px;border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.pantry-panel-title{
+  font-family:'Playfair Display',serif;font-size:19px;color:var(--ink);
+}
+.pantry-panel-close{
+  width:30px;height:30px;border-radius:50%;
+  border:1px solid var(--border);background:transparent;
+  color:var(--ink-3);display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;
+}
+.pantry-panel-sub{
+  font-size:13px;color:var(--ink-3);padding:8px 20px 0;flex-shrink:0;line-height:1.5;
+}
+.pantry-panel-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 16px 0}
+.pantry-panel-add{
+  display:flex;gap:8px;padding:12px 16px;
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+.pantry-panel-input{
+  flex:1;padding:11px 13px;
+  background:var(--paper);border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);font-size:15px;color:var(--ink);
+  outline:none;transition:border-color .2s;font-family:'Crimson Pro',serif;
+}
+.pantry-panel-input:focus{border-color:var(--olive)}
+.pantry-panel-save{
+  padding:11px 18px;border-radius:var(--radius-sm);
+  background:var(--olive);border:none;
+  font-family:'Crimson Pro',serif;font-size:15px;
+  color:#fff;cursor:pointer;flex-shrink:0;
+}
+
 /* ── UTILS ───────────────────────────────────────────────────── */
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
 </style>
@@ -1472,6 +1531,30 @@ select.form-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://
     <div class="conv-tabs" id="conv-tabs"></div>
     <div class="conv-body" id="conv-body"></div>
     <div class="conv-ref" id="conv-ref"></div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PANTRY MANAGER SHEET
+══════════════════════════════════════════════════════════════ -->
+<div class="pantry-sheet" id="pantry-sheet" onclick="closePantrySheet()">
+  <div class="pantry-panel" onclick="event.stopPropagation()">
+    <div class="pantry-panel-handle"></div>
+    <div class="pantry-panel-head">
+      <div class="pantry-panel-title">Pantry staples</div>
+      <button class="pantry-panel-close" onclick="closePantrySheet()">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="pantry-panel-sub">Items here are hidden from your main shopping list. Tap × to remove any. Tap 🏠 on any list item to add it here.</div>
+    <div class="pantry-panel-scroll" id="pantry-sheet-list"></div>
+    <div class="pantry-panel-add">
+      <input class="pantry-panel-input" id="pantry-sheet-input" type="text"
+        placeholder="Add a staple, e.g. water"
+        onkeydown="if(event.key==='Enter'){addPantryFromSheet();event.preventDefault()}">
+      <button class="pantry-panel-save" onclick="addPantryFromSheet()">Add</button>
+    </div>
   </div>
 </div>
 
@@ -2587,6 +2670,7 @@ function buildListScreen(){
     </div>
     <div class="list-actions">
       <button class="list-action-btn" onclick="back('s-plan')">← Edit plan</button>
+      <button class="list-action-btn" onclick="openPantrySheet()">🏠 Pantry</button>
       <button class="list-action-btn primary" onclick="clearChecked()">Uncheck all</button>
     </div>
     <div style="height:16px"></div>`;
@@ -2597,6 +2681,37 @@ function toggleStaplesSection(toggleEl){
   const caret = toggleEl.querySelector('.list-staples-caret');
   body.classList.toggle('open');
   caret.classList.toggle('open');
+}
+
+
+function listItemHtml(item, isChecked){
+  const key = item.key || item.id || '';
+  const safeKey = key.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const safeName = (item.name||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+  const srcText = (item.sources||[]).length <= 2
+    ? (item.sources||[]).join(', ')
+    : (item.sources||[]).slice(0,2).join(', ') + ` +${(item.sources||[]).length-2} more`;
+  const isManual = item.aisleId === 'manual';
+  const actionBtn = isManual
+    ? `<button onclick="event.stopPropagation();removeManualItem('${safeKey}')" style="background:transparent;border:none;color:var(--ink-4);font-size:18px;padding:4px 0 4px 8px;cursor:pointer;flex-shrink:0;line-height:1" aria-label="Remove">×</button>`
+    : !isChecked
+      ? `<button onclick="event.stopPropagation();addToPantryFromList('${safeName}')"
+           style="background:var(--olive-light);border:1px solid var(--olive-mid);color:var(--sage-dark);
+                  font-size:11px;font-weight:500;padding:4px 8px;border-radius:99px;cursor:pointer;
+                  flex-shrink:0;white-space:nowrap;font-family:'Crimson Pro',serif;margin-left:6px"
+           title="Move to pantry staples">🏠</button>`
+      : '';
+  return `<div class="list-item ${isChecked?'checked':''}" onclick="toggleListItem('${safeKey}',this)">
+    <div class="list-item-check">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <div class="list-item-body">
+      ${item.displayQty ? `<div class="list-item-qty">${esc(item.displayQty)}</div>` : ''}
+      <div class="list-item-name">${esc(item.name||'')}</div>
+      ${srcText ? `<div class="list-item-sources">${esc(srcText)}</div>` : ''}
+    </div>
+    ${actionBtn}
+  </div>`;
 }
 
 
@@ -2959,8 +3074,10 @@ function confirmWipeAll(){
 // ══════════════════════════════════════════════════════════════
 const PANTRY_KEY = 'recipebook_pantry_v1';
 const DEFAULT_STAPLES = [
-  'extra virgin olive oil','EVOO','salt','black pepper','garlic',
-  'oat milk','honey','cinnamon','turmeric','ground ginger',
+  'water','extra virgin olive oil','EVOO','salt','kosher salt',
+  'flaky salt','black pepper','garlic','oat milk','honey',
+  'cinnamon','turmeric','ground ginger','baking powder','baking soda',
+  'maple syrup','olive oil',
 ];
 
 function loadPantryStaples(){
@@ -3535,6 +3652,78 @@ function convSwapUnits(){
   convToVal    = tmpVal;
   renderConverterBody();
   if(convFromVal) convCalcFrom(convFromVal, false);
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// PANTRY SHEET (inline manager from shopping list)
+// ══════════════════════════════════════════════════════════════
+
+function openPantrySheet(){
+  renderPantrySheet();
+  document.getElementById('pantry-sheet').classList.add('open');
+}
+
+function closePantrySheet(){
+  document.getElementById('pantry-sheet').classList.remove('open');
+  // Rebuild the shopping list in case pantry changed
+  buildListScreen();
+}
+
+function renderPantrySheet(){
+  const staples = loadPantryStaples();
+  const container = document.getElementById('pantry-sheet-list');
+  if(!staples.length){
+    container.innerHTML = `<div style="padding:16px 4px;font-size:14px;color:var(--ink-3)">No staples added yet.</div>`;
+    return;
+  }
+  // Group alphabetically for easy scanning
+  const sorted = [...staples].sort((a,b)=>a.toLowerCase().localeCompare(b.toLowerCase()));
+  container.innerHTML = sorted.map((s,i)=>{
+    const origIdx = staples.indexOf(s);
+    return `<div class="pantry-item" style="margin-bottom:6px">
+      <span class="pantry-item-name">${esc(s)}</span>
+      <button class="pantry-remove" onclick="removePantryFromSheet(${origIdx})" aria-label="Remove ${esc(s)}">×</button>
+    </div>`;
+  }).join('');
+}
+
+function removePantryFromSheet(idx){
+  const staples = loadPantryStaples();
+  const removed = staples.splice(idx,1)[0];
+  savePantryStaples(staples);
+  renderPantrySheet();
+  showToast(`"${removed}" removed from pantry`);
+}
+
+function addPantryFromSheet(){
+  const input = document.getElementById('pantry-sheet-input');
+  const val = input.value.trim();
+  if(!val){ showToast('Please enter an item name'); return; }
+  const staples = loadPantryStaples();
+  if(staples.some(s=>s.toLowerCase()===val.toLowerCase())){
+    showToast('Already in pantry staples');
+    input.value='';
+    return;
+  }
+  staples.push(val);
+  savePantryStaples(staples);
+  input.value='';
+  renderPantrySheet();
+  showToast(`"${val}" added to pantry`);
+}
+
+function addToPantryFromList(name){
+  if(!name) return;
+  const staples = loadPantryStaples();
+  if(staples.some(s=>s.toLowerCase()===name.toLowerCase())){
+    showToast(`"${name}" is already a pantry staple`);
+    return;
+  }
+  staples.push(name);
+  savePantryStaples(staples);
+  showToast(`"${name}" added to pantry — rebuilding list`);
+  buildListScreen();
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -4208,5 +4397,11 @@ buildHome();
 </script>
 </body>
 </html>
+
+
+
+
+
+
 
 
