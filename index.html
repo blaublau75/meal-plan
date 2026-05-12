@@ -2964,24 +2964,24 @@ const DEFAULT_STAPLES = [
 ];
 
 function loadPantryStaples(){
+  // Returns stored staples, or seeds defaults on first use
   try{
     const raw = localStorage.getItem(PANTRY_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }catch(e){return null;}
+    if(raw !== null) return JSON.parse(raw);
+    // First run — seed with defaults and return them
+    savePantryStaples(DEFAULT_STAPLES);
+    return DEFAULT_STAPLES;
+  }catch(e){
+    return DEFAULT_STAPLES;
+  }
 }
 function savePantryStaples(list){ localStorage.setItem(PANTRY_KEY, JSON.stringify(list)); }
 
 function getPantryStaples(){
-  const stored = loadPantryStaples();
-  if(stored !== null) return stored;
-  // First run — seed with defaults
-  savePantryStaples(DEFAULT_STAPLES);
-  return DEFAULT_STAPLES;
+  return loadPantryStaples(); // loadPantryStaples now handles first-run defaults
 }
 
-// Override loadPantryStaples to return defaults on first use
-const _origLoad = loadPantryStaples;
-function loadPantryStaples(){ return getPantryStaples(); }
+// loadPantryStaples uses getPantryStaples() for first-run defaults (see below)
 
 function renderPantryList(){
   const staples = loadPantryStaples();
